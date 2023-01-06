@@ -86,6 +86,7 @@
             <label for="weic-features">Resources ~ Wilmington Education Improvement Commission</label>
         </div>
         <div id="readout" class="menubar"></div>
+        <div id="catlist" class="menubar"></div>
         <div id='satellite'>Add satellite</div>
 
         <!-- JS :: Mapbox -->
@@ -93,14 +94,14 @@
             const params = {
                 accessToken: 'pk.eyJ1IjoibGlsbXJob3VzZSIsImEiOiJja3d1cm5nOHQxdDlrMnZueWY4dzlrbHY2In0.g14m2o2rHvNYYdDSsjwmqQ',
                 styles: {
-                    dti: 'mapbox://styles/lilmrhouse/clbm51ik9000115qw3b63x370'
+                    warmfuzzy: 'mapbox://styles/lilmrhouse/clckubrie00dw14qtav0gsq4u'
                 },
                 center: [
                     -75.551,
                     39.738
                 ],
                 projections: {
-                    mercator: 'mercator'
+                    mercator: 'globe'
                 },
                 hash: false,
                 pitch: 60,
@@ -109,9 +110,24 @@
                 maxZoom: 50,
                 scrollZoom: true
             };
+            var Categories = {
+                FoodNutrition: [], 
+                HealthHealthcare: [], 
+                AcademicEducational: [], 
+                EarlyChildhood: [], 
+                Recreational: [], 
+                Housing: [], 
+                MentalHealth: [], 
+                Transportation: [], 
+                Other: []
+            };
             mapboxgl.accessToken = params.accessToken;
+
             const menu = document.getElementById('menu');
             const inputs = menu.getElementsByTagName('input');
+            const catlist = document.getElementById('catlist');
+            const readout = document.getElementById('readout');
+            const satelliteSwitch = document.getElementById('satellite');
 
             for (const input of inputs) {
                 input.onclick = (style) => {
@@ -139,8 +155,7 @@
                     
                 };
             }
-            const readout = document.getElementById('readout');
-            const satelliteSwitch = document.getElementById('satellite');
+            
             satelliteSwitch.onclick = () => {
                 if (satelliteSwitch.classList.contains("on")) {
                     map.setLayoutProperty('satellite', 'visibility', 'none');
@@ -156,7 +171,7 @@
             
             const map = new mapboxgl.Map({
                 container: 'map',
-                style: params.styles.dti,
+                style: params.styles.warmfuzzy,
                 projection: params.projections.mercator,
                 center: params.center,
                 hash: params.hash,
@@ -185,54 +200,15 @@
                     type: 'vector',
                     url: 'mapbox://mapbox.mapbox-streets-v8'
                 });
+                map.addSource('census-tract-shapefile', {
+                    type: 'vector',
+                    url: 'mapbox://lilmrhouse.3gd9m3do'
+                });
                 map.addSource('dots', {
                     type: 'vector',
                     url: 'mapbox://lilmrhouse.5ldfh4fb'
                 })
 
-                map.addLayer({
-                    'id': 'extruded-buildings',
-                    'type': 'fill-extrusion',
-                    'source': 'building',
-                    'source-layer': 'building',
-                    'layout': {
-                        'visibility': 'visible'
-                    },
-                    'paint': {
-                        'fill-extrusion-height': 
-                        [
-                            "interpolate",
-                            ["linear"],
-                            ["get", "height"],
-                            0,
-                            0,
-                            500,
-                            [
-                                "case",
-                                [
-                                "==",
-                                ["get", "height"],
-                                0
-                                ],
-                                500,
-                                500
-                            ]
-                        ],
-                        'fill-extrusion-color':
-                        [
-                            "interpolate",
-                            ["linear"],
-                            ["get", "height"],
-                            0,
-                            "hsl(257, 88%, 40%)",
-                            150,
-                            "hsl(197, 85%, 60%)",
-                            300,
-                            "hsl(163, 83%, 58%)"
-                        ],
-                        'fill-extrusion-opacity': 0.7
-                    }
-                });
                 map.addLayer({
                     'id': 'satellite',
                     'source': {
@@ -246,10 +222,58 @@
                     }
                 });
                 map.addLayer({
+                    'id': 'census-tract-fills',
+                    'type': 'fill',
+                    'source': 'census-tract-shapefile',
+                    'source-layer': 'tl_2020_10_tract-9uewme',
+                    'layout': {
+                        'visibility': 'visible'
+                    },
+                    'paint': {
+                        'fill-opacity': 0
+                    }  
+                });
+                map.addLayer({
+                    'id': 'extruded-buildings',
+                    'type': 'fill-extrusion',
+                    'source': 'building',
+                    'source-layer': 'building',
+                    'layout': {
+                        'visibility': 'visible'
+                    },
+                    'paint': {
+                        'fill-extrusion-height': 
+                        [
+                        "interpolate",
+                        ["linear"],
+                        ["get", "height"],
+                        0,
+                        0,
+                        1500,
+                        1500
+                        ],
+                        'fill-extrusion-color': "hsl(12, 83%, 81%)",
+                        'fill-extrusion-opacity': 0.9
+                    }
+                });
+                map.addLayer({
                     'id': 'weic-features', 
                     'type': 'circle',
                     'source': 'dots',
                     'source-layer': 'alldata_geolocated-981eop',
+                    'filter': [
+                        "all",
+                        [
+                            "match",
+                            [
+                            "get",
+                            "OrganizationName"
+                            ],
+                            ["NA"],
+                            false,
+                            true
+                        ]
+                    ],
                     'layout': {
                         'visibility': 'visible'
                     },
@@ -264,23 +288,75 @@
                 });
             });
 
-            map.on('mousemove', function(e) {
-                var data = map.queryRenderedFeatures(e.point, {
-                    layers: ['weic-features']
-                });
-                if (data.length > 0) {
-                    if (data[0].properties.Addresses !== undefined) {
-                        readout.innerHTML
-                        =
-                        data[0].properties.OrganizationName + "<br>" +
-                        "<br>" +
-                        data[0].properties.Addresses + "<br>" +
-                        "<br>" +
-                        data[0].properties.Description + "<br>"
-                        ;
+
+            map.once('idle', () => {
+                const AllDataFeatures = map.queryRenderedFeatures({layers: ['weic-features']}).map(
+                    (features) => features.properties
+                );
+
+                function categorizeDataFeatures(all) {
+                    console.log(all);
+                    //
+                    for (var i = 0; i < all.length; i++){
+                        if (all[i].FoodNutrition == "X") { Categories.FoodNutrition.push(all[i]); };
+                        if (all[i].HealthHealthcare == "X") { Categories.HealthHealthcare.push(all[i]); };
+                        if (all[i].AcademicEducational == "X") { Categories.AcademicEducational.push(all[i]); };
+                        if (all[i].EarlyChildhood == "X") { Categories.EarlyChildhood.push(all[i]); };
+                        if (all[i].Recreational == "X") { Categories.Recreational.push(all[i]); };
+                        if (all[i].Housing == "X") { Categories.Housing.push(all[i]); };
+                        if (all[i].MentalHealth == "X") { Categories.MentalHealth.push(all[i]); };
+                        if (all[i].Transportation == "X") { Categories.Transportation.push(all[i]); };
+                        if (all[i].Other == "X") { Categories.Other.push(all[i]); };
                     }
+                    console.log(Categories);
                 }
-            })
+                categorizeDataFeatures(AllDataFeatures);
+            });
+
+
+            map.on('click', function(e) {
+                const CensusTract = map.queryRenderedFeatures(e.point, {
+                    layers: ['census-tract-fills']
+                }).map(
+                    (feature) => feature.properties
+                );
+                const DataFeature = map.queryRenderedFeatures(e.point, {
+                    layers: ['weic-features']
+                }).map(
+                    (feature) => feature.properties
+                );
+
+                function printCategories(df) {
+                    console.log(df);
+                    //
+                    var output = "";
+                    if (df.FoodNutrition == "X") { output += "Food & Nutrition" };
+                    if (df.HealthHealthcare == "X") { output += "Health & Healthcare" };
+                    if (df.AcademicEducational == "X") { output += "Academic & Educational" };
+                    if (df.EarlyChildhood == "X") { output += "Early Childhood" };
+                    if (df.Recreational == "X") { output += "Recreational" };
+                    if (df.Housing == "X") { output += "Housing" };
+                    if (df.MentalHealth == "X") { output += "Mental Health" };
+                    if (df.Transportation == "X") { output += "Transportation" };
+                    if (df.Other == "X") { output += "Other" };
+                    return output;
+                }
+
+                switch(DataFeature.length) {
+                    case 0:
+                        readout.innerHTML = ``;
+                        break;
+                    default:
+                        readout.innerHTML = 
+                            `<b>Name</b><br>` + DataFeature[0].OrganizationName + `<br><br>` +
+                            `<b>Address</b><br>` + DataFeature[0].Addresses + `<br><br>` +
+                            `<b>` + CensusTract[0].NAMELSAD + `</b><br>` +
+                            `<b>` + printCategories(DataFeature[0]) + `</b><br><br>` +
+                            DataFeature[0].Description + `<br>`
+                        ;
+                        break;
+                }
+            });
 
         </script>
     </body>
