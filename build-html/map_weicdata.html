@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Map Visualization of DE Open Data (DTI)</title>
+        <meta name="description" content="You are here, in a 3D map of DE Open Data">
+        <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+        <meta http-equiv="cache-control" content="no-cache">
+        <meta http-equiv="expires" content="0">
+        <meta http-equiv="pragma" content="no-cache">
+
+        <!-- Mapbox -->
+        <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
+        <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
+        <!--
+        Mapbox Geocoder
+        -->
+        <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js'></script>
+        <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css' type='text/css' />
+        
+
+        <!-- D3.js  -->
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <script src="https://d3js.org/d3-collection.v1.min.js"></script>
+        <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+        <script src="https://d3js.org/d3-dsv.v1.min.js"></script>
+        <script src="https://d3js.org/d3-request.v1.min.js"></script>
+
+        <style type="text/css">
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            #map {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+            .menubar {
+                background: #fff;
+                position: relative;
+                left: 0.7rem;
+                top: 0.7rem;
+                padding: 1rem;
+                margin: 0.5rem;
+                width: 22.5rem;
+                border: none;
+                border-radius: 0.5rem;
+                box-shadow: 0 -3em 3em rgba(0, 0, 0, 0.1), 0 0 0 2px rgb(255, 255, 255),
+                            0.3em 0.3em 1em rgba(0, 0, 0, 0.3);
+                background-color: #fff;
+                font-family: 'Open Sans', sans-serif;
+            }
+            #satellite {
+                margin: 0 auto;
+                background-color: rgb(0, 176, 225);
+                color: #fff;
+                font-weight: bold;
+                padding: 0.5em;
+                border: 2px solid #fff;
+                border-radius: 0.5em;
+                box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+                cursor: pointer;
+                position: absolute;
+                left: 27em;
+                top: 1.2em;
+                font-family: 'Open Sans', sans-serif;
+            }
+            #satellite:hover {
+                background-color: rgb(1, 153, 195);
+            }
+        </style>
+    </head>
+    <body>
+        <!-- HTML :: Mapbox -->
+        <div id="map"></div>
+        <div id="menu" class="menubar">
+            <input id="extruded-buildings" type="checkbox" name="toggle" value="extruded-buildings" checked="checked">
+            <label for="extruded-buildings">Buildings</label>
+            <br>
+            <input id="weic-features" type="checkbox" name="toggle" value="weic-features" checked="checked">
+            <label for="weic-features">Resources ~ Wilmington Education Improvement Commission</label>
+        </div>
+        <div id="readout" class="menubar"></div>
+        <div id='satellite'>Add satellite</div>
+
+        <!-- JS :: Mapbox -->
+        <script>
+            const params = {
+                accessToken: 'pk.eyJ1IjoibGlsbXJob3VzZSIsImEiOiJja3d1cm5nOHQxdDlrMnZueWY4dzlrbHY2In0.g14m2o2rHvNYYdDSsjwmqQ',
+                styles: {
+                    dti: 'mapbox://styles/lilmrhouse/clbm51ik9000115qw3b63x370'
+                },
+                center: [
+                    -75.551,
+                    39.738
+                ],
+                projections: {
+                    mercator: 'mercator'
+                },
+                hash: false,
+                pitch: 60,
+                zoom: 16.09,
+                minZoom: 0,
+                maxZoom: 50,
+                scrollZoom: true
+            };
+            mapboxgl.accessToken = params.accessToken;
+            const menu = document.getElementById('menu');
+            const inputs = menu.getElementsByTagName('input');
+
+            for (const input of inputs) {
+                input.onclick = (style) => {
+                    const propertySelected = style.target.value;
+                    if (!input.checked) {
+                        switch (propertySelected) {
+                            case "extruded-buildings":
+                                map.setLayoutProperty('extruded-buildings', 'visibility', 'none');
+                                break;
+                            case "weic-features":
+                                map.setLayoutProperty('weic-features', 'visibility', 'none');
+                                break;
+                        }
+                    }
+                    else if (input.checked) {
+                        switch (propertySelected) {
+                            case "extruded-buildings":
+                                map.setLayoutProperty('extruded-buildings', 'visibility', 'visible');
+                                break;
+                            case "weic-features":
+                                map.setLayoutProperty('weic-features', 'visibility', 'visible');
+                                break;
+                        }
+                    }
+                    
+                };
+            }
+            const readout = document.getElementById('readout');
+            const satelliteSwitch = document.getElementById('satellite');
+            satelliteSwitch.onclick = () => {
+                if (satelliteSwitch.classList.contains("on")) {
+                    map.setLayoutProperty('satellite', 'visibility', 'none');
+                    satelliteSwitch.classList.toggle('on');
+                    satelliteSwitch.innerHTML = "Add satellite";
+                }
+                else {
+                    map.setLayoutProperty('satellite', 'visibility', 'visible');
+                    satelliteSwitch.classList.toggle('on');
+                    satelliteSwitch.innerHTML = "Remove satellite";
+                }
+            }
+            
+            const map = new mapboxgl.Map({
+                container: 'map',
+                style: params.styles.dti,
+                projection: params.projections.mercator,
+                center: params.center,
+                hash: params.hash,
+                pitch: params.pitch,
+                zoom: params.zoom,
+                minZoom: params.minZoom,
+                maxZoom: params.maxZoom,
+                scrollZoom: params.scrollZoom,
+                attributionControl: {
+                    position: 'bottom-left'
+                }
+            });
+            const geocoder = new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken,
+                mapboxgl: mapboxgl,
+                marker: false,
+                proximity: {
+                    longitude: params.center[0],
+                    latitude: params.center[1]
+                }
+            });
+            map.addControl( geocoder );
+
+            map.on('load', () => {
+                map.addSource('building', {
+                    type: 'vector',
+                    url: 'mapbox://mapbox.mapbox-streets-v8'
+                });
+                map.addSource('dots', {
+                    type: 'vector',
+                    url: 'mapbox://lilmrhouse.5ldfh4fb'
+                })
+
+                map.addLayer({
+                    'id': 'extruded-buildings',
+                    'type': 'fill-extrusion',
+                    'source': 'building',
+                    'source-layer': 'building',
+                    'layout': {
+                        'visibility': 'visible'
+                    },
+                    'paint': {
+                        'fill-extrusion-height': 
+                        [
+                            "interpolate",
+                            ["linear"],
+                            ["get", "height"],
+                            0,
+                            0,
+                            500,
+                            [
+                                "case",
+                                [
+                                "==",
+                                ["get", "height"],
+                                0
+                                ],
+                                500,
+                                500
+                            ]
+                        ],
+                        'fill-extrusion-color':
+                        [
+                            "interpolate",
+                            ["linear"],
+                            ["get", "height"],
+                            0,
+                            "hsl(257, 88%, 40%)",
+                            150,
+                            "hsl(197, 85%, 60%)",
+                            300,
+                            "hsl(163, 83%, 58%)"
+                        ],
+                        'fill-extrusion-opacity': 0.7
+                    }
+                });
+                map.addLayer({
+                    'id': 'satellite',
+                    'source': {
+                        'type': 'raster',
+                        'url': 'mapbox://mapbox.satellite',
+                        'tileSize': 256
+                    },
+                    'type': 'raster',
+                    'layout': {
+                        'visibility': 'none'
+                    }
+                });
+                map.addLayer({
+                    'id': 'weic-features', 
+                    'type': 'circle',
+                    'source': 'dots',
+                    'source-layer': 'alldata_geolocated-981eop',
+                    'layout': {
+                        'visibility': 'visible'
+                    },
+                    'paint': {
+                        'circle-color': "#49DBCE",
+                        'circle-radius': 15,
+                        'circle-opacity': 1,
+                        'circle-stroke-color': "#000000",
+                        'circle-stroke-width': 1,
+                        'circle-stroke-opacity': 1
+                    }
+                });
+            });
+
+            map.on('mousemove', function(e) {
+                var data = map.queryRenderedFeatures(e.point, {
+                    layers: ['weic-features']
+                });
+                if (data.length > 0) {
+                    if (data[0].properties.Addresses !== undefined) {
+                        readout.innerHTML
+                        =
+                        data[0].properties.OrganizationName + "<br>" +
+                        "<br>" +
+                        data[0].properties.Addresses + "<br>" +
+                        "<br>" +
+                        data[0].properties.Description + "<br>"
+                        ;
+                    }
+                }
+            })
+
+        </script>
+    </body>
+</html>
