@@ -20,6 +20,9 @@
         <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css' type='text/css' />
         
 
+        <!-- Three.js -->
+        <script src="https://unpkg.com/three@0.148.0/build/three.min.js"></script>
+
         <!-- D3.js  -->
         <script src="http://d3js.org/d3.v3.min.js"></script>
         <script src="https://d3js.org/d3-collection.v1.min.js"></script>
@@ -45,6 +48,21 @@
                 position: relative;
                 left: 0.7rem;
                 top: 0.7rem;
+                padding: 1rem;
+                margin: 0.5rem;
+                width: 22.5rem;
+                border: none;
+                border-radius: 0.5rem;
+                box-shadow: 0 -3em 3em rgba(0, 0, 0, 0.1), 0 0 0 2px rgb(255, 255, 255),
+                            0.3em 0.3em 1em rgba(0, 0, 0, 0.3);
+                background-color: #fff;
+                font-family: 'Open Sans', sans-serif;
+            }
+            .listbar {
+                background: #fff;
+                position: absolute;
+                right: 0.7rem;
+                top: 6.8rem;
                 padding: 1rem;
                 margin: 0.5rem;
                 width: 22.5rem;
@@ -86,7 +104,43 @@
             <label for="weic-features">Resources ~ Wilmington Education Improvement Commission</label>
         </div>
         <div id="readout" class="menubar"></div>
-        <div id="catlist" class="menubar"></div>
+        <div id="catlist" class="listbar">
+            <input class="filter_FoodNutrition" id="FoodNutrition" name="filters" value="FoodNutrition" type="checkbox"
+                onchange="filterCatsUpdate.call(this, event)"
+                checked="checked">Food & Nutrition</input>
+            <br>
+            <input class="filter_HealthHealthcare" id="HealthHealthcare" name="filters" value="HealthHealthcare" type="checkbox"
+                onchange="filterCatsUpdate.call(this, event)"
+                checked="checked">Health & Healthcare</input>
+            <br>
+            <input class="filter_AcademicEducational" id="AcademicEducational" name="filters" value="AcademicEducational" type="checkbox"
+                onchange="filterCatsUpdate.call(this, event)"
+                checked="checked">Academic & Educational</input>
+            <br>
+            <input class="filter_EarlyChildhood" id="EarlyChildhood" name="filters" value="EarlyChildhood" type="checkbox"
+                onchange="filterCatsUpdate.call(this, event)"
+                checked="checked">Early Childhood</input>
+            <br>
+            <input class="filter_Recreational" id="Recreational" name="filters" value="Recreational" type="checkbox"
+                onchange="filterCatsUpdate.call(this, event)"
+                checked="checked">Recreational</input>
+            <br>
+            <input class="filter_Housing" id="Housing" name="filters" value="Housing" type="checkbox"
+                onchange="filterCatsUpdate.call(this, event)"
+                checked="checked">Housing</input>
+            <br>
+            <input class="filter_MentalHealth" id="MentalHealth" name="filters" value="MentalHealth" type="checkbox"
+                onchange="filterCatsUpdate.call(this, event)"
+                checked="checked">Mental Health</input>
+            <br>
+            <input class="filter_Transportation" id="Transportation" name="filters" value="Transportation" type="checkbox"
+                onchange="filterCatsUpdate.call(this, event)"
+                checked="checked">Transportation</input>
+            <br>
+            <input class="filter_Other" id="Other" name="filters" value="Other" type="checkbox"
+                onchange="filterCatsUpdate.call(this, event)"
+                checked="checked">Other</input>
+        </div>
         <div id='satellite'>Add satellite</div>
 
         <!-- JS :: Mapbox -->
@@ -120,6 +174,17 @@
                 MentalHealth: [], 
                 Transportation: [], 
                 Other: []
+            };
+            var CategoryColors = {
+                FoodNutrition: "#A8E10C",       //A8E10C - Kelly Green
+                HealthHealthcare: "#FF5765",    //FF5765 - Coral
+                AcademicEducational: "#01DEE6", //01DEE6 - Teal
+                EarlyChildhood: "#FFDB15",      //FFDB15 - Yellow
+                Recreational: "#FF66E9",        //FF66E9 - Hot Pink
+                Housing: "#952B60",             //952B60 - Dark Pink
+                MentalHealth: "#8A6FDF",        //8A6FDF - Violet
+                Transportation: "#3D91E0",      //3D91E0 - Deep Blue 
+                Other: "#FDA649"                //FDA649 - Beige Orange
             };
             mapboxgl.accessToken = params.accessToken;
 
@@ -278,11 +343,86 @@
                         'visibility': 'visible'
                     },
                     'paint': {
-                        'circle-color': "#49DBCE",
-                        'circle-radius': 15,
+                        'circle-color': [
+                            "case",
+                            [
+                                "match",
+                                ["get", "FoodNutrition"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.FoodNutrition,
+                            [
+                                "match",
+                                ["get", "HealthHealthcare"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.HealthHealthcare,
+                            [
+                                "match",
+                                ["get", "AcademicEducational"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.AcademicEducational,
+                            [
+                                "match",
+                                ["get", "EarlyChildhood"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.EarlyChildhood,
+                            [
+                                "match",
+                                ["get", "Recreational"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.Recreational,
+                            [
+                                "match",
+                                ["get", "Housing"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.Housing,
+                            [
+                                "match",
+                                ["get", "MentalHealth"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.MentalHealth,
+                            [
+                                "match",
+                                ["get", "Transportation"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.Transportation,
+                            [
+                                "match",
+                                ["get", "Other"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.Other,
+                            "#000000"
+                        ],
+                        'circle-radius': 6,
                         'circle-opacity': 1,
                         'circle-stroke-color': "#000000",
-                        'circle-stroke-width': 1,
+                        'circle-stroke-width': 0,
                         'circle-stroke-opacity': 1
                     }
                 });
@@ -293,24 +433,8 @@
                 const AllDataFeatures = map.queryRenderedFeatures({layers: ['weic-features']}).map(
                     (features) => features.properties
                 );
-
-                function categorizeDataFeatures(all) {
-                    console.log(all);
-                    //
-                    for (var i = 0; i < all.length; i++){
-                        if (all[i].FoodNutrition == "X") { Categories.FoodNutrition.push(all[i]); };
-                        if (all[i].HealthHealthcare == "X") { Categories.HealthHealthcare.push(all[i]); };
-                        if (all[i].AcademicEducational == "X") { Categories.AcademicEducational.push(all[i]); };
-                        if (all[i].EarlyChildhood == "X") { Categories.EarlyChildhood.push(all[i]); };
-                        if (all[i].Recreational == "X") { Categories.Recreational.push(all[i]); };
-                        if (all[i].Housing == "X") { Categories.Housing.push(all[i]); };
-                        if (all[i].MentalHealth == "X") { Categories.MentalHealth.push(all[i]); };
-                        if (all[i].Transportation == "X") { Categories.Transportation.push(all[i]); };
-                        if (all[i].Other == "X") { Categories.Other.push(all[i]); };
-                    }
-                    console.log(Categories);
-                }
                 categorizeDataFeatures(AllDataFeatures);
+                console.log(Categories);
             });
 
 
@@ -326,22 +450,6 @@
                     (feature) => feature.properties
                 );
 
-                function printCategories(df) {
-                    console.log(df);
-                    //
-                    var output = "";
-                    if (df.FoodNutrition == "X") { output += "Food & Nutrition" };
-                    if (df.HealthHealthcare == "X") { output += "Health & Healthcare" };
-                    if (df.AcademicEducational == "X") { output += "Academic & Educational" };
-                    if (df.EarlyChildhood == "X") { output += "Early Childhood" };
-                    if (df.Recreational == "X") { output += "Recreational" };
-                    if (df.Housing == "X") { output += "Housing" };
-                    if (df.MentalHealth == "X") { output += "Mental Health" };
-                    if (df.Transportation == "X") { output += "Transportation" };
-                    if (df.Other == "X") { output += "Other" };
-                    return output;
-                }
-
                 switch(DataFeature.length) {
                     case 0:
                         readout.innerHTML = ``;
@@ -351,13 +459,97 @@
                             `<b>Name</b><br>` + DataFeature[0].OrganizationName + `<br><br>` +
                             `<b>Address</b><br>` + DataFeature[0].Addresses + `<br><br>` +
                             `<b>` + CensusTract[0].NAMELSAD + `</b><br>` +
-                            `<b>` + printCategories(DataFeature[0]) + `</b><br><br>` +
+                            `<b>` + "______________" + `</b><br><br>` +
+                            `<b>` + printCategories(DataFeature[0]) + `</b><br>` +
                             DataFeature[0].Description + `<br>`
                         ;
                         break;
                 }
             });
 
+            function categorizeDataFeatures(all) {
+                console.log(all);
+                //
+                for (var i = 0; i < all.length; i++){
+                    if (all[i].FoodNutrition == "X") { Categories.FoodNutrition.push(all[i]); };
+                    if (all[i].HealthHealthcare == "X") { Categories.HealthHealthcare.push(all[i]); };
+                    if (all[i].AcademicEducational == "X") { Categories.AcademicEducational.push(all[i]); };
+                    if (all[i].EarlyChildhood == "X") { Categories.EarlyChildhood.push(all[i]); };
+                    if (all[i].Recreational == "X") { Categories.Recreational.push(all[i]); };
+                    if (all[i].Housing == "X") { Categories.Housing.push(all[i]); };
+                    if (all[i].MentalHealth == "X") { Categories.MentalHealth.push(all[i]); };
+                    if (all[i].Transportation == "X") { Categories.Transportation.push(all[i]); };
+                    if (all[i].Other == "X") { Categories.Other.push(all[i]); };
+                }
+            }
+            function printCategories(df) {
+                    console.log(df);
+                    //
+                    var output = "";
+                    if (df.FoodNutrition == "X") { output += "Food & Nutrition<br/>" };
+                    if (df.HealthHealthcare == "X") { output += "Health & Healthcare<br/>" };
+                    if (df.AcademicEducational == "X") { output += "Academic & Educational<br/>" };
+                    if (df.EarlyChildhood == "X") { output += "Early Childhood<br/>" };
+                    if (df.Recreational == "X") { output += "Recreational<br/>" };
+                    if (df.Housing == "X") { output += "Housing<br/>" };
+                    if (df.MentalHealth == "X") { output += "Mental Health<br/>" };
+                    if (df.Transportation == "X") { output += "Transportation<br/>" };
+                    if (df.Other == "X") { output += "Other<br>" };
+                    return output;
+                }
+
+            function filterCatsUpdate(e) {
+                console.log("filterCatsUpdate called");
+                console.log(e);
+                //
+                var defaultarray = [
+                                    "all",
+                                    [
+                                        "match",
+                                        [
+                                        "get",
+                                        "OrganizationName"
+                                        ],
+                                        ["NA"],
+                                        false,
+                                        true
+                                    ]
+                                    ]
+                                ;
+                console.log({defaultarray});
+                var filterarray = defaultarray;
+
+                var excludes = document.querySelectorAll('input[name=filters]:not(:checked)');
+                for (var i = 0; i < excludes.length; i++ ){
+                    console.log(excludes[i].value);
+                    filterarray.push(
+                        [
+                            "match",
+                            [
+                            "get",
+                            excludes[i].value
+                            ],
+                            ["X"],
+                            false,
+                            true
+                        ]
+                    );
+                }
+                console.log({filterarray});
+
+                if (!e.target.checked) { 
+                    console.log("Now it is Unchecked"); 
+                    map.setFilter('weic-features', filterarray);
+                }
+                else if (e.target.checked) { 
+                    console.log("Now it is Checked"); 
+                    map.setFilter('weic-features', defaultarray);
+                } 
+            }
+
+
+            const THREE = window.THREE;
+            
         </script>
     </body>
 </html>
