@@ -14,10 +14,15 @@
         <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
         <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
         <!--
-        Mapbox Geocoder
+            Mapbox Geocoder
         -->
         <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js'></script>
         <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css' type='text/css' />
+        <!--
+            Mapbox Directions
+        -->
+        <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js"></script>
+        <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css" type="text/css">
         
 
         <!-- Three.js -->
@@ -61,8 +66,8 @@
             .listbar {
                 background: #fff;
                 position: absolute;
-                right: 0.7rem;
-                top: 6.8rem;
+                left: 0.7rem;
+                bottom: 1.8rem;
                 padding: 1rem;
                 margin: 0.5rem;
                 width: 16rem;
@@ -316,7 +321,8 @@
                     trackUserLocation: true,
                     // Draw an arrow next to the location dot to indicate which direction the device is heading.
                     showUserHeading: true
-                    })
+                    }),
+                    'top-right'
             );
             const geocoder = new MapboxGeocoder({
                 accessToken: mapboxgl.accessToken,
@@ -328,6 +334,12 @@
                 }
             });
             map.addControl( geocoder );
+            map.addControl(
+                new MapboxDirections({
+                    accessToken: mapboxgl.accessToken
+                }),
+                'top-right'
+            );
 
             map.on('load', () => {
                 map.addSource('building', {
@@ -340,7 +352,7 @@
                 });
                 map.addSource('dots', {
                     type: 'vector',
-                    url: 'mapbox://lilmrhouse.1a4i4i29'
+                    url: 'mapbox://lilmrhouse.3atow0lv'
                 })
 
                 map.addLayer({
@@ -412,7 +424,7 @@
                     'id': 'heat-glow-base',
                     'type': 'circle',
                     'source': 'dots',
-                    'source-layer': 'alldata_geolocated-739o2c',
+                    'source-layer': 'alldata_geolocated-4rfe3o',
                     'filter': [
                         "all",
                         [
@@ -530,7 +542,7 @@
                     'id': 'heat-glow-mid',
                     'type': 'circle',
                     'source': 'dots',
-                    'source-layer': 'alldata_geolocated-739o2c',
+                    'source-layer': 'alldata_geolocated-4rfe3o',
                     'filter': [
                         "all",
                         [
@@ -648,7 +660,7 @@
                     'id': 'weic-features', 
                     'type': 'circle',
                     'source': 'dots',
-                    'source-layer': 'alldata_geolocated-739o2c',
+                    'source-layer': 'alldata_geolocated-4rfe3o',
                     'filter': [
                         "all",
                         [
