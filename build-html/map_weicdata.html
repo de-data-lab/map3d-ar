@@ -65,13 +65,25 @@
                 top: 6.8rem;
                 padding: 1rem;
                 margin: 0.5rem;
-                width: 22.5rem;
+                width: 16rem;
                 border: none;
                 border-radius: 0.5rem;
                 box-shadow: 0 -3em 3em rgba(0, 0, 0, 0.1), 0 0 0 2px rgb(255, 255, 255),
                             0.3em 0.3em 1em rgba(0, 0, 0, 0.3);
                 background-color: #fff;
                 font-family: 'Open Sans', sans-serif;
+            }
+            .cattable {
+                border-spacing: 0.5rem;
+            }
+            .cattable td {
+                 border-spacing: 0.5rem;
+            }
+            .cattable .checkboxlabel {
+                width: 14rem;
+            }
+            .cattable .colorswatch {
+                width: 1.5rem;
             }
             #satellite {
                 margin: 0 auto;
@@ -105,41 +117,80 @@
         </div>
         <div id="readout" class="menubar"></div>
         <div id="catlist" class="listbar">
-            <input class="filter_FoodNutrition" id="FoodNutrition" name="filters" value="FoodNutrition" type="checkbox"
-                onchange="filterCatsUpdate.call(this, event)"
-                checked="checked">Food & Nutrition</input>
-            <br>
-            <input class="filter_HealthHealthcare" id="HealthHealthcare" name="filters" value="HealthHealthcare" type="checkbox"
-                onchange="filterCatsUpdate.call(this, event)"
-                checked="checked">Health & Healthcare</input>
-            <br>
-            <input class="filter_AcademicEducational" id="AcademicEducational" name="filters" value="AcademicEducational" type="checkbox"
-                onchange="filterCatsUpdate.call(this, event)"
-                checked="checked">Academic & Educational</input>
-            <br>
-            <input class="filter_EarlyChildhood" id="EarlyChildhood" name="filters" value="EarlyChildhood" type="checkbox"
-                onchange="filterCatsUpdate.call(this, event)"
-                checked="checked">Early Childhood</input>
-            <br>
-            <input class="filter_Recreational" id="Recreational" name="filters" value="Recreational" type="checkbox"
-                onchange="filterCatsUpdate.call(this, event)"
-                checked="checked">Recreational</input>
-            <br>
-            <input class="filter_Housing" id="Housing" name="filters" value="Housing" type="checkbox"
-                onchange="filterCatsUpdate.call(this, event)"
-                checked="checked">Housing</input>
-            <br>
-            <input class="filter_MentalHealth" id="MentalHealth" name="filters" value="MentalHealth" type="checkbox"
-                onchange="filterCatsUpdate.call(this, event)"
-                checked="checked">Mental Health</input>
-            <br>
-            <input class="filter_Transportation" id="Transportation" name="filters" value="Transportation" type="checkbox"
-                onchange="filterCatsUpdate.call(this, event)"
-                checked="checked">Transportation</input>
-            <br>
-            <input class="filter_Other" id="Other" name="filters" value="Other" type="checkbox"
-                onchange="filterCatsUpdate.call(this, event)"
-                checked="checked">Other</input>
+            <table class="cattable">
+                <tr>
+                    <td class="checkboxlabel">
+                        <input class="filter_AcademicEducational" id="AcademicEducational" name="filters" value="AcademicEducational" type="checkbox"
+                            onchange="filterCatsUpdate.call(this, event)"
+                            checked="checked">Academic & Educational</input>
+                    </td>
+                    <td class="colorswatch" style="background-color: #01DEE6;"></td>
+                </tr>
+                <tr>
+                    <td class="checkboxlabel">
+                        <input class="filter_EarlyChildhood" id="EarlyChildhood" name="filters" value="EarlyChildhood" type="checkbox"
+                            onchange="filterCatsUpdate.call(this, event)"
+                            checked="checked">Early Childhood</input>
+                    </td>
+                    <td class="colorswatch" style="background-color: #FFDB15;"></td>
+                </tr>
+                <tr>
+                    <td class="checkboxlabel">
+                        <input class="filter_FoodNutrition" id="FoodNutrition" name="filters" value="FoodNutrition" type="checkbox"
+                            onchange="filterCatsUpdate.call(this, event)"
+                            checked="checked">Food & Nutrition</input>
+                    </td>
+                    <td class="colorswatch" style="background-color: #A8E10C;"></td>
+                </tr>
+                <tr>
+                    <td class="checkboxlabel">
+                        <input class="filter_HealthHealthcare" id="HealthHealthcare" name="filters" value="HealthHealthcare" type="checkbox"
+                            onchange="filterCatsUpdate.call(this, event)"
+                            checked="checked">Health & Healthcare</input>
+                    </td>
+                    <td class="colorswatch" style="background-color: #FF5765;"></td>
+                </tr>
+                <tr>
+                    <td class="checkboxlabel">
+                        <input class="filter_Housing" id="Housing" name="filters" value="Housing" type="checkbox"
+                            onchange="filterCatsUpdate.call(this, event)"
+                            checked="checked">Housing</input>
+                    </td>
+                    <td class="colorswatch" style="background-color: #952B60;"></td>
+                </tr>
+                <tr>
+                    <td class="checkboxlabel">
+                        <input class="filter_MentalHealth" id="MentalHealth" name="filters" value="MentalHealth" type="checkbox"
+                            onchange="filterCatsUpdate.call(this, event)"
+                            checked="checked">Mental Health</input>
+                    </td>
+                    <td class="colorswatch" style="background-color: #4B0082;"></td>
+                </tr>
+                <tr>
+                    <td class="checkboxlabel">
+                        <input class="filter_Recreational" id="Recreational" name="filters" value="Recreational" type="checkbox"
+                            onchange="filterCatsUpdate.call(this, event)"
+                            checked="checked">Recreational</input>
+                    </td>
+                    <td class="colorswatch" style="background-color: #FF66E9"></td>
+                </tr>
+                <tr>
+                    <td class="checkboxlabel">
+                        <input class="filter_Transportation" id="Transportation" name="filters" value="Transportation" type="checkbox"
+                            onchange="filterCatsUpdate.call(this, event)"
+                            checked="checked">Transportation</input>
+                    </td>
+                    <td class="colorswatch" style="background-color: #3D91E0;"></td>
+                </tr>
+                <tr>
+                    <td class="checkboxlabel">
+                        <input class="filter_Other" id="Other" name="filters" value="Other" type="checkbox"
+                            onchange="filterCatsUpdate.call(this, event)"
+                            checked="checked">Other</input>
+                    </td>
+                    <td class="colorswatch" style="background-color: #FDA649;"></td>
+                </tr>
+            </table>
         </div>
         <div id='satellite'>Add satellite</div>
 
@@ -148,14 +199,17 @@
             const params = {
                 accessToken: 'pk.eyJ1IjoibGlsbXJob3VzZSIsImEiOiJja3d1cm5nOHQxdDlrMnZueWY4dzlrbHY2In0.g14m2o2rHvNYYdDSsjwmqQ',
                 styles: {
-                    warmfuzzy: 'mapbox://styles/lilmrhouse/clckubrie00dw14qtav0gsq4u'
+                    warmfuzzy: 'mapbox://styles/lilmrhouse/clckubrie00dw14qtav0gsq4u',
+                    purplelight: 'mapbox://styles/lilmrhouse/clcqnng2b000915sfqmiihlkj',
+                    purpledark: 'mapbox://styles/lilmrhouse/clcb57hs900ek14oxroe22xub'
                 },
                 center: [
                     -75.551,
                     39.738
                 ],
                 projections: {
-                    mercator: 'globe'
+                    mercator: 'mercator',
+                    globe: 'globe'
                 },
                 hash: false,
                 pitch: 60,
@@ -182,7 +236,7 @@
                 EarlyChildhood: "#FFDB15",      //FFDB15 - Yellow
                 Recreational: "#FF66E9",        //FF66E9 - Hot Pink
                 Housing: "#952B60",             //952B60 - Dark Pink
-                MentalHealth: "#8A6FDF",        //8A6FDF - Violet
+                MentalHealth: "#4B0082",        //8A6FDF - Violet
                 Transportation: "#3D91E0",      //3D91E0 - Deep Blue 
                 Other: "#FDA649"                //FDA649 - Beige Orange
             };
@@ -204,6 +258,8 @@
                                 break;
                             case "weic-features":
                                 map.setLayoutProperty('weic-features', 'visibility', 'none');
+                                map.setLayoutProperty('heat-glow-base', 'visibility', 'none');
+                                map.setLayoutProperty('heat-glow-mid', 'visibility', 'none');
                                 break;
                         }
                     }
@@ -214,6 +270,8 @@
                                 break;
                             case "weic-features":
                                 map.setLayoutProperty('weic-features', 'visibility', 'visible');
+                                map.setLayoutProperty('heat-glow-base', 'visibility', 'visible');
+                                map.setLayoutProperty('heat-glow-mid', 'visibility', 'visible');
                                 break;
                         }
                     }
@@ -236,8 +294,8 @@
             
             const map = new mapboxgl.Map({
                 container: 'map',
-                style: params.styles.warmfuzzy,
-                projection: params.projections.mercator,
+                style: params.styles.purpledark,
+                projection: params.projections.globe,
                 center: params.center,
                 hash: params.hash,
                 pitch: params.pitch,
@@ -249,6 +307,17 @@
                     position: 'bottom-left'
                 }
             });
+            map.addControl(
+                new mapboxgl.GeolocateControl({
+                    positionOptions: {
+                        enableHighAccuracy: true
+                    },
+                    // When active the map will receive updates to the device's location as it changes.
+                    trackUserLocation: true,
+                    // Draw an arrow next to the location dot to indicate which direction the device is heading.
+                    showUserHeading: true
+                    })
+            );
             const geocoder = new MapboxGeocoder({
                 accessToken: mapboxgl.accessToken,
                 mapboxgl: mapboxgl,
@@ -271,7 +340,7 @@
                 });
                 map.addSource('dots', {
                     type: 'vector',
-                    url: 'mapbox://lilmrhouse.5ldfh4fb'
+                    url: 'mapbox://lilmrhouse.1a4i4i29'
                 })
 
                 map.addLayer({
@@ -307,25 +376,43 @@
                         'visibility': 'visible'
                     },
                     'paint': {
-                        'fill-extrusion-height': 
-                        [
-                        "interpolate",
-                        ["linear"],
-                        ["get", "height"],
-                        0,
-                        0,
-                        1500,
-                        1500
+                        'fill-extrusion-height': [
+                            "interpolate",
+                            ["linear"],
+                            ["get", "height"],
+                            0,
+                            0,
+                            500,
+                            [
+                                "case",
+                                [
+                                "==",
+                                ["get", "height"],
+                                0
+                                ],
+                                500,
+                                500
+                            ]
                         ],
-                        'fill-extrusion-color': "hsl(12, 83%, 81%)",
-                        'fill-extrusion-opacity': 0.9
+                        'fill-extrusion-color': [
+                            "interpolate",
+                            ["linear"],
+                            ["get", "height"],
+                            0,
+                            "hsl(257, 88%, 40%)",
+                            150,
+                            "hsl(197, 85%, 60%)",
+                            300,
+                            "hsl(163, 83%, 58%)"
+                        ], //f7b6a6
+                        'fill-extrusion-opacity': 0.6
                     }
                 });
                 map.addLayer({
-                    'id': 'weic-features', 
+                    'id': 'heat-glow-base',
                     'type': 'circle',
                     'source': 'dots',
-                    'source-layer': 'alldata_geolocated-981eop',
+                    'source-layer': 'alldata_geolocated-739o2c',
                     'filter': [
                         "all",
                         [
@@ -417,10 +504,267 @@
                                 false
                             ],
                             CategoryColors.Other,
-                            "#000000"
+                            CategoryColors.Other
                         ],
-                        'circle-radius': 6,
-                        'circle-opacity': 1,
+                        'circle-radius': [
+                        "interpolate",
+                        ["linear"],
+                        ["zoom"],
+                        0,
+                        60,
+                        15,
+                        60,
+                        17,
+                        250,
+                        20,
+                        600
+                        ],
+                        'circle-blur': 3,
+                        'circle-opacity': 0.4,
+                        'circle-stroke-color': "#000000",
+                        'circle-stroke-width': 0,
+                        'circle-stroke-opacity': 1
+                    }
+                });
+                map.addLayer({
+                    'id': 'heat-glow-mid',
+                    'type': 'circle',
+                    'source': 'dots',
+                    'source-layer': 'alldata_geolocated-739o2c',
+                    'filter': [
+                        "all",
+                        [
+                            "match",
+                            [
+                            "get",
+                            "OrganizationName"
+                            ],
+                            ["NA"],
+                            false,
+                            true
+                        ]
+                    ],
+                    'layout': {
+                        'visibility': 'visible'
+                    },
+                    'paint': {
+                        'circle-color': [
+                            "case",
+                            [
+                                "match",
+                                ["get", "FoodNutrition"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.FoodNutrition,
+                            [
+                                "match",
+                                ["get", "HealthHealthcare"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.HealthHealthcare,
+                            [
+                                "match",
+                                ["get", "AcademicEducational"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.AcademicEducational,
+                            [
+                                "match",
+                                ["get", "EarlyChildhood"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.EarlyChildhood,
+                            [
+                                "match",
+                                ["get", "Recreational"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.Recreational,
+                            [
+                                "match",
+                                ["get", "Housing"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.Housing,
+                            [
+                                "match",
+                                ["get", "MentalHealth"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.MentalHealth,
+                            [
+                                "match",
+                                ["get", "Transportation"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.Transportation,
+                            [
+                                "match",
+                                ["get", "Other"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.Other,
+                            CategoryColors.Other
+                        ],
+                        'circle-radius': [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            0,
+                            30,
+                            15,
+                            30,
+                            17,
+                            125,
+                            20,
+                            300
+                        ],
+                        'circle-blur': 1,
+                        'circle-opacity': 0.4,
+                        'circle-stroke-color': "#000000",
+                        'circle-stroke-width': 0,
+                        'circle-stroke-opacity': 1
+                    }
+                });
+                map.addLayer({
+                    'id': 'weic-features', 
+                    'type': 'circle',
+                    'source': 'dots',
+                    'source-layer': 'alldata_geolocated-739o2c',
+                    'filter': [
+                        "all",
+                        [
+                            "match",
+                            [
+                            "get",
+                            "OrganizationName"
+                            ],
+                            ["NA"],
+                            false,
+                            true
+                        ]
+                    ],
+                    'layout': {
+                        'visibility': 'visible'
+                    },
+                    'paint': {
+                        'circle-color': [
+                            "case",
+                            [
+                                "match",
+                                ["get", "FoodNutrition"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.FoodNutrition,
+                            [
+                                "match",
+                                ["get", "HealthHealthcare"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.HealthHealthcare,
+                            [
+                                "match",
+                                ["get", "AcademicEducational"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.AcademicEducational,
+                            [
+                                "match",
+                                ["get", "EarlyChildhood"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.EarlyChildhood,
+                            [
+                                "match",
+                                ["get", "Recreational"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.Recreational,
+                            [
+                                "match",
+                                ["get", "Housing"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.Housing,
+                            [
+                                "match",
+                                ["get", "MentalHealth"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.MentalHealth,
+                            [
+                                "match",
+                                ["get", "Transportation"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.Transportation,
+                            [
+                                "match",
+                                ["get", "Other"],
+                                ["X"],
+                                true,
+                                false
+                            ],
+                            CategoryColors.Other,
+                            CategoryColors.Other
+                        ],
+                        'circle-radius': [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            0,
+                            6,
+                            15,
+                            6,
+                            17,
+                            25,
+                            20,
+                            60
+                        ],
+                        'circle-blur': 0,
+                        'circle-opacity': [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            9,
+                            0,
+                            15,
+                            1
+                        ],
                         'circle-stroke-color': "#000000",
                         'circle-stroke-width': 0,
                         'circle-stroke-opacity': 1
@@ -456,10 +800,10 @@
                         break;
                     default:
                         readout.innerHTML = 
-                            `<b>Name</b><br>` + DataFeature[0].OrganizationName + `<br><br>` +
-                            `<b>Address</b><br>` + DataFeature[0].Addresses + `<br><br>` +
-                            `<b>` + CensusTract[0].NAMELSAD + `</b><br>` +
-                            `<b>` + "______________" + `</b><br><br>` +
+                            `<b>Resource for Families/Children:</b><br>` + DataFeature[0].OrganizationName + `<br><br>` +
+                            `<b>Resource Location:</b><br>` + DataFeature[0].Addresses + `<br><br>` +
+                            `<b>Census Tract: ` + CensusTract[0].NAME + `</b><br>` +
+                            `<br>` +
                             `<b>` + printCategories(DataFeature[0]) + `</b><br>` +
                             DataFeature[0].Description + `<br>`
                         ;
@@ -540,10 +884,14 @@
                 if (!e.target.checked) { 
                     console.log("Now it is Unchecked"); 
                     map.setFilter('weic-features', filterarray);
+                    map.setFilter('heat-glow-base', filterarray);
+                    map.setFilter('heat-glow-mid', filterarray);
                 }
                 else if (e.target.checked) { 
                     console.log("Now it is Checked"); 
                     map.setFilter('weic-features', defaultarray);
+                    map.setFilter('heat-glow-base', defaultarray);
+                    map.setFilter('heat-glow-mid', defaultarray);
                 } 
             }
 
