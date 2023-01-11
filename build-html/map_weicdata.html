@@ -666,8 +666,8 @@
                         [
                             "match",
                             [
-                            "get",
-                            "OrganizationName"
+                                "get",
+                                "OrganizationName"
                             ],
                             ["NA"],
                             false,
@@ -859,37 +859,36 @@
                 console.log(e);
                 //
                 var defaultarray = [
-                                    "all",
-                                    [
-                                        "match",
-                                        [
-                                        "get",
-                                        "OrganizationName"
-                                        ],
-                                        ["NA"],
-                                        false,
-                                        true
-                                    ]
+                                        "all",
+                                        ["!=", "OrganizationName", "NA"]
                                     ]
                                 ;
                 console.log({defaultarray});
                 var filterarray = defaultarray;
 
                 var excludes = document.querySelectorAll('input[name=filters]:not(:checked)');
-                for (var i = 0; i < excludes.length; i++ ){
-                    console.log(excludes[i].value);
+                var includes = document.querySelectorAll('input[name=filters]:checked');
+                for (var j = 0; j < excludes.length; j++ ){
+                    //
+                    // For 'hard-selecting' -- points with multiple categories are hidden
+                    // as long as even one of its categories is deselected
+                    filterarray.push(["!=", excludes[j].value, "X"]);
+
+                    // For 'soft-selecting' -- points with multiple categories are retained,
+                    // even if one of those categories are deselected
+                    // as long as at least one of the point's other categories is selected
+                    /*
+                    var bools = [ "any" ];
+                    for (var i = 0; i < includes.length; i++) {
+                        bools.push(["==", includes[i].value, 'X']);
+                    }
                     filterarray.push(
                         [
-                            "match",
-                            [
-                            "get",
-                            excludes[i].value
-                            ],
-                            ["X"],
-                            false,
-                            true
+                            "all",
+                            bools
                         ]
                     );
+                    */
                 }
                 console.log({filterarray});
 
