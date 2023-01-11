@@ -90,6 +90,59 @@
             .cattable .colorswatch {
                 width: 1.5rem;
             }
+            .switch {
+                position: relative;
+                display: inline-block;
+                align-self: center;
+                width: 60px;
+                height: 34px;
+            }
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            /* The slider */
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                -webkit-transition: .4s;
+                transition: .4s;
+            }
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 26px;
+                width: 26px;
+                left: 4px;
+                bottom: 4px;
+                background-color: white;
+                -webkit-transition: .4s;
+                transition: .4s;
+            }
+            input:checked + .slider {
+                background-color: #2196F3;
+            }
+            input:focus + .slider {
+                box-shadow: 0 0 1px #2196F3;
+            }
+            input:checked + .slider:before {
+                -webkit-transform: translateX(26px);
+                -ms-transform: translateX(26px);
+                transform: translateX(26px);
+            }
+            /* Rounded sliders */
+            .slider.round {
+                border-radius: 30px;
+            }
+            .slider.round:before {
+                border-radius: 50%;
+            }
             #satellite {
                 margin: 0 auto;
                 background-color: rgb(0, 176, 225);
@@ -122,6 +175,11 @@
         </div>
         <div id="readout" class="menubar"></div>
         <div id="catlist" class="listbar">
+            <label class="switch" id="selectionslider">
+                <input name="selectionmethodslider" type="checkbox" value="HardSelect" checked="checked">
+                <span class="slider round"></span>
+            </label>
+            <label class="switchlabel">Hard Select</label>
             <table class="cattable">
                 <tr>
                     <td class="checkboxlabel">
@@ -252,6 +310,7 @@
             const catlist = document.getElementById('catlist');
             const readout = document.getElementById('readout');
             const satelliteSwitch = document.getElementById('satellite');
+            const selectionSlider = document.querySelector('input[name=selectionmethodslider]');
 
             for (const input of inputs) {
                 input.onclick = (style) => {
@@ -294,6 +353,17 @@
                     map.setLayoutProperty('satellite', 'visibility', 'visible');
                     satelliteSwitch.classList.toggle('on');
                     satelliteSwitch.innerHTML = "Remove satellite";
+                }
+            }
+
+            selectionSlider.onclick = () => {
+                if (selectionSlider.checked) { 
+                    selectionSlider.value = "HardSelect";
+                    document.querySelector('.switchlabel').innerHTML = "Hard Select"; 
+                }
+                else if (!selectionSlider.checked) { 
+                    selectionSlider.value = "SoftSelect";
+                    document.querySelector('.switchlabel').innerHTML = "Soft Select";
                 }
             }
             
@@ -866,29 +936,31 @@
                 console.log({defaultarray});
                 var filterarray = defaultarray;
 
+                var selectionmethod = document.querySelector('input[name=selectionmethodslider]');
                 var excludes = document.querySelectorAll('input[name=filters]:not(:checked)');
                 var includes = document.querySelectorAll('input[name=filters]:checked');
                 for (var j = 0; j < excludes.length; j++ ){
-                    //
-                    // For 'hard-selecting' -- points with multiple categories are hidden
-                    // as long as even one of its categories is deselected
-                    filterarray.push(["!=", excludes[j].value, "X"]);
-
-                    // For 'soft-selecting' -- points with multiple categories are retained,
-                    // even if one of those categories are deselected
-                    // as long as at least one of the point's other categories is selected
-                    /*
-                    var bools = [ "any" ];
-                    for (var i = 0; i < includes.length; i++) {
-                        bools.push(["==", includes[i].value, 'X']);
+                    console.log(selectionmethod.value);
+                    if (selectionmethod.value == "HardSelect") {
+                        // For 'hard-selecting' -- points with multiple categories are hidden
+                        // as long as even one of its categories is deselected
+                        filterarray.push(["!=", excludes[j].value, "X"]);   
                     }
-                    filterarray.push(
-                        [
-                            "all",
-                            bools
-                        ]
-                    );
-                    */
+                    else if (selectionmethod.value == "SoftSelect") {
+                        // For 'soft-selecting' -- points with multiple categories are retained,
+                        // even if one of those categories are deselected
+                        // as long as at least one of the point's other categories is selected
+                        var bools = [ "any" ];
+                        for (var i = 0; i < includes.length; i++) {
+                            bools.push(["==", includes[i].value, 'X']);
+                        }
+                        filterarray.push(
+                            [
+                                "all",
+                                bools
+                            ]
+                        );
+                    }
                 }
                 console.log({filterarray});
 
