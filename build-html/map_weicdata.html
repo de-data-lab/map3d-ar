@@ -230,12 +230,13 @@
             }
             .cattable {
                 border-spacing: 0.5rem;
+                padding-bottom: 0;
             }
             .cattable td {
                  border-spacing: 0.5rem;
             }
             .cattable .checkboxlabel {
-                width: 14rem;
+                width: fit-content;
             }
             .cattable .colorswatch {
                 width: 1.5rem;
@@ -256,6 +257,42 @@
                 text-align: center;
                 justify-self: center;
                 font-family: 'Roboto Mono', sans-serif;
+            }
+            #reports {
+                color: #fff;
+            }
+            .sidebar {
+                position: relative;
+                margin: 0px 10px 0px 20px;
+                padding: 20px;
+                border: none;
+                border-radius: 0.5rem;
+                background: none;
+                overflow-y: scroll;
+            }
+            .card {
+                font-size: small;
+                border-bottom: solid #d3d3d3 2px;
+                margin-bottom: 6px;
+            }
+            .card-header {
+                font-weight: bold;
+                padding: 6px;
+            }
+            .no-route {
+                background-color: #d3d3d3;
+                color: #f00;
+            }
+            .obstacle-found {
+                background-color: #d3d3d3;
+                color: #fff;
+            }
+            .route-found {
+                background-color: #33a532;
+                color: #fff;
+            }
+            .card-details {
+                padding: 3px 6px;
             }
             /* arrow common style */
             .arrow {
@@ -289,15 +326,15 @@
                 <p class="faded">This map lists and categorizes resources in Education, Nutrition, Healthcare, Transportation, and so many more.</p>
 
                 <!-- Turn on/off layers -->
-                <h3>On/Off</h3>
-                <div id="resources" class="on">Hide Resources</div>
+                <h3 class="faded">On/Off</h3>
+                <div id="resources" class="on faded">Hide Resources</div>
                 <span></span>
-                <div id="extruded-buildings" class="on">Hide 3D Buildings</div>
-                <div id="satellite">Add satellite</div>
+                <div id="extruded-buildings" class="on faded">Hide 3D Buildings</div>
+                <div id="satellite" class="faded">Add satellite</div>
 
                 <!-- Categories list -->
-                <h3>Filters</h3>
-                <div id="catlist" class="listbar">
+                <h3 class="faded">Filters</h3>
+                <div id="catlist" class="listbar faded">
                     <!--
                     <label class="switch" id="selectionslider">
                         <input name="selectionmethodslider" type="checkbox" value="HardSelect" checked="checked">
@@ -382,8 +419,8 @@
                 </div>
 
                 <!-- Reports from Mapbox Directions (Routes) -->
-                <div class="sidebar">
-                    <h1>Reports</h1>
+                <h3 class="faded">Reports</h3>
+                <div class="sidebar faded">
                     <div id="reports"></div>
                 </div>
             </div>
@@ -1167,23 +1204,24 @@
                 );
 
                 //outputting resource data in a popup
-                const clickcoordinates = [ DataFeature[0].Longitude, DataFeature[0].Latitude ];
-                while (Math.abs(e.lngLat.lng - clickcoordinates[0]) > 180) {
-                    clickcoordinates[0] += e.lngLat.lng > clickcoordinates[0] ? 360 : -360;
+                if (DataFeature.length > 0) {
+                    const clickcoordinates = [ DataFeature[0].Longitude, DataFeature[0].Latitude ];
+                    while (Math.abs(e.lngLat.lng - clickcoordinates[0]) > 180) {
+                        clickcoordinates[0] += e.lngLat.lng > clickcoordinates[0] ? 360 : -360;
+                    }
+                    new mapboxgl.Popup()
+                    .setLngLat(clickcoordinates)
+                    .setHTML(
+                        `<b>Resource for Families/Children:</b><br>` + DataFeature[0].OrganizationName + `<br><br>` +
+                        `<b>Resource Location:</b><br>` + DataFeature[0].Addresses + `<br><br>` +
+                        `<b>Census Tract: ` + CensusTract[0].NAME + `</b><br>` +
+                        `<br>` +
+                        `<b>` + printCategories(DataFeature[0]) + `</b><br>` +
+                        DataFeature[0].Description + `<br>`
+                    )
+                    .addTo(map);
                 }
-                new mapboxgl.Popup()
-                .setLngLat(clickcoordinates)
-                .setHTML(
-                    `<b>Resource for Families/Children:</b><br>` + DataFeature[0].OrganizationName + `<br><br>` +
-                    `<b>Resource Location:</b><br>` + DataFeature[0].Addresses + `<br><br>` +
-                    `<b>Census Tract: ` + CensusTract[0].NAME + `</b><br>` +
-                    `<br>` +
-                    `<b>` + printCategories(DataFeature[0]) + `</b><br>` +
-                    DataFeature[0].Description + `<br>`
-                )
-                .addTo(map);
-
-
+                
                 //routes
                 const coords = Object.keys(e.lngLat).map((key) => e.lngLat[key]);
                 const end = {
@@ -1289,6 +1327,216 @@
                     map.setFilter('heat-glow-mid', defaultarray);
                 } 
             }
+
+
+            // Add functionality for routing
+            let counter = 0;
+            const maxAttempts = 50;
+            let emoji = '';
+            let collision = '';
+            let detail = '';
+            const reports = document.getElementById('reports');
+            let clearances = {
+                type: 'FeatureCollection',
+                features: [
+                    {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-84.47426, 38.06673]
+                    },
+                    properties: {
+                        clearance: "13' 2"
+                    }
+                    },
+                    {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-84.47208, 38.06694]
+                    },
+                    properties: {
+                        clearance: "13' 7"
+                    }
+                    },
+                    {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-84.60485, 38.12184]
+                    },
+                    properties: {
+                        clearance: "13' 7"
+                    }
+                    },
+                    {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-84.61905, 37.87504]
+                    },
+                    properties: {
+                        clearance: "12' 0"
+                    }
+                    },
+                    {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-84.55946, 38.30213]
+                    },
+                    properties: {
+                        clearance: "13' 6"
+                    }
+                    },
+                    {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-84.27235, 38.04954]
+                    },
+                    properties: {
+                        clearance: "13' 6"
+                    }
+                    },
+                    {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-84.27264, 37.82917]
+                    },
+                    properties: {
+                        clearance: "11' 6"
+                    }
+                    }
+                ]
+            };
+            map.on('weic-features', function(e) {
+                console.log("dots")
+                if (map.getSource('weic-features') && map.isSourceLoaded('dots')) {
+                    console.log('source loaded!');
+                    var features = map.querySourceFeatures('weic-features');
+                    console.log(features);
+                }
+            });
+            let obstacle = turf.buffer(clearances, 0.25, { units: 'kilometers' });
+            let bbox = [0, 0, 0, 0];
+            let polygon = turf.bboxPolygon(bbox);
+
+            function addCard(id, element, clear, detail) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                // Add the response to the individual report created above
+                const heading = document.createElement('div');
+                // Set the class type based on clear value
+                heading.className =
+                    clear === true ? 'card-header route-found' : 'card-header obstacle-found';
+                heading.innerHTML =
+                    id === 0
+                    ? `${emoji} The route ${collision}`
+                    : `${emoji} Route ${id} ${collision}`;
+
+                const details = document.createElement('div');
+                details.className = 'card-details';
+                details.innerHTML = `This ${detail} obstacles.`;
+
+                card.appendChild(heading);
+                card.appendChild(details);
+                element.insertBefore(card, element.firstChild);
+            }
+            function noRoutes(element) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                // Add the response to the individual report created above
+                const heading = document.createElement('div');
+                heading.className = 'card-header no-route';
+                emoji = '🛑';
+                heading.innerHTML = `${emoji} Ending search.`;
+
+                // Add details to the individual report
+                const details = document.createElement('div');
+                details.className = 'card-details';
+                details.innerHTML = `No clear route found in ${counter} tries.`;
+
+                card.appendChild(heading);
+                card.appendChild(details);
+                element.insertBefore(card, element.firstChild);
+            }
+            directions.on('clear', () => {
+                map.setLayoutProperty('theRoute', 'visibility', 'none');
+                map.setLayoutProperty('theBox', 'visibility', 'none');
+                
+                counter = 0;
+                reports.innerHTML = '';
+            });
+            directions.on('route', (event) => {
+                // Hide the route and box by setting the opacity to zero
+                map.setLayoutProperty('theRoute', 'visibility', 'none');
+                map.setLayoutProperty('theBox', 'visibility', 'none');
+                
+                if (counter >= maxAttempts) {
+                    noRoutes(reports);
+                } else {
+                    // Make each route visible
+                    for (const route of event.route) {
+                        // Make each route visible
+                        map.setLayoutProperty('theRoute', 'visibility', 'visible');
+                        map.setLayoutProperty('theBox', 'visibility', 'visible');
+                    
+                        // Get GeoJSON LineString feature of route
+                        const routeLine = polyline.toGeoJSON(route.geometry);
+                    
+                        // Create a bounding box around this route
+                        // The app will find a random point in the new bbox
+                        bbox = turf.bbox(routeLine);
+                        polygon = turf.bboxPolygon(bbox);
+                    
+                        // Update the data for the route
+                        // This will update the route line on the map
+                        map.getSource('theRoute').setData(routeLine);
+                        
+                        // Update the box
+                        map.getSource('theBox').setData(polygon);
+                        
+                        const clear = turf.booleanDisjoint(obstacle, routeLine);
+                        
+                        if (clear === true) {
+                            collision = 'does not intersect any obstacles!';
+                            detail = `takes ${(route.duration / 60).toFixed(0)} minutes and avoids`;
+                            emoji = '✔️';
+                            map.setPaintProperty('theRoute', 'line-color', '#74c476');
+                            // Hide the box
+                            map.setLayoutProperty('theBox', 'visibility', 'none');
+                            // Reset the counter
+                            counter = 0;
+                        } else {
+                            // Collision occurred, so increment the counter
+                            counter = counter + 1;
+                            // As the attempts increase, expand the search area
+                            // by a factor of the attempt count
+                            polygon = turf.transformScale(polygon, counter * 0.01);
+                            bbox = turf.bbox(polygon);
+                            collision = 'is bad.';
+                            detail = `takes ${(route.duration / 60).toFixed(0)} minutes and hits`;
+                            emoji = '⚠️';
+                            map.setPaintProperty('theRoute', 'line-color', '#de2d26');
+                        
+                            // Add a randomly selected waypoint to get a new route from the Directions API
+                            const randomWaypoint = turf.randomPoint(1, { bbox: bbox });
+                            directions.setWaypoint(
+                                0,
+                                randomWaypoint['features'][0].geometry.coordinates
+                            );
+                        }
+                        // Add a new report section to the sidebar
+                        addCard(counter, reports, clear, detail);
+                    }
+                }
+            });
+            
+
+            // Add Three.js functionality
+            const THREE = window.THREE;
 
         </script>
     </body>
