@@ -26,7 +26,8 @@
         <script src=https://cdnjs.cloudflare.com/ajax/libs/mapbox-polyline/1.1.1/polyline.js></script>
 
         <!-- Three.js -->
-        <script src="https://unpkg.com/three@0.148.0/build/three.min.js"></script>
+        <script src="https://unpkg.com/three@0.126.0/build/three.min.js"></script>
+        <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
 
         <!-- D3.js  -->
         <script src="http://d3js.org/d3.v3.min.js"></script>
@@ -64,7 +65,7 @@
                 font-family: sans-serif;
             }
             body {
-                background-color: #4600FF;
+                background-color: #100826;
                 font-size: 0.85rem;
                 line-height: 150%;
                 text-align: left;
@@ -163,9 +164,9 @@
             }
             #collapse_button {
                 transform: rotate(45deg);
-                padding: 2 2rem;     
-                margin: 1 0rem;
-                width: 15px;
+                padding: 0 0rem;     
+                margin: 1 2rem;
+                width: 30px;
                 height: 30px;
                 transition: 500ms ease;
             }
@@ -175,10 +176,11 @@
                 border: none;
                 flex-basis: 0;
                 transition: 500ms ease;
-                padding-left: 20px;
-                padding-right: 20px;
+                padding-left: 0px;
+                padding-right: 0px;
                 width: 0;
                 height: 100vh;
+                opacity: 0.0;
                 overflow-y: scroll;
                 overflow-x: hidden;
             }
@@ -187,6 +189,7 @@
                 border: solid 0.2rem #49dbce;
                 border-radius: 0rem;
                 transition: 500ms ease;
+                opacity: 1.0;
             }
             .controlpanel-toggle {
                 background-color: #100826;
@@ -294,6 +297,13 @@
             .card-details {
                 padding: 3px 6px;
             }
+            .tilogo {
+                background-image: url('../assets/techimpact_mainlogo_clear_space.svg');
+                background-size: cover;
+                width: 50px;
+                height: 50px;
+                cursor: pointer;
+            }
             /* arrow common style */
             .arrow {
                 display: inline-block;
@@ -311,6 +321,8 @@
             .arrow-rotate-left {
                 transform: rotate(-180deg);
                 transition: 500ms ease;
+                padding: 0 0rem;     
+                margin: 1 2rem;
             }
         </style>
     </head>
@@ -499,13 +511,39 @@
             const buildingsSwitch = document.getElementById('extruded-buildings');
             const resourcesSwitch = document.getElementById('resources');
 
-            const TechImpactNewarkCoords = [-75.75751,39.66319];
+            const TechImpactLocations = {
+                type: 'FeatureCollection',
+                features: [
+                    {
+                        type: 'Feature',
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [-75.75751,39.66319]
+                            },
+                        properties: {
+                            title: 'Tech Impact ~ FinTech Building',
+                            description: 'Newark, DE'
+                        }
+                    },
+                    {
+                        type: 'Feature',
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [-75.55143,39.73657]
+                            },
+                        properties: {
+                            title: 'Tech Impact ~ CSC Station',
+                            description: 'Wilmington, DE'
+                        }
+                    }
+                ]
+            };
             var mygeo = [0,0];
 
             // Add user location
             const options = {
                 enableHighAccuracy: true,
-                timeout: 5000,
+                timeout: 9000,
                 maximumAge: 0
             };
             function success(pos) {
@@ -551,6 +589,7 @@
                     map.setLayoutProperty('heat-glow-mid', 'visibility', 'none');
                     resourcesSwitch.classList.toggle('on');
                     resourcesSwitch.style.backgroundColor = "#00b0e1";
+                    resourcesSwitch.style.transition = "all 300ms ease-in";
                     resourcesSwitch.innerHTML = "Show Resources"
                 }
                 else {
@@ -559,6 +598,7 @@
                     map.setLayoutProperty('heat-glow-mid', 'visibility', 'visible');
                     resourcesSwitch.classList.toggle('on');
                     resourcesSwitch.style.backgroundColor = "#4600ff";
+                    resourcesSwitch.style.transition = "all 300ms ease-out";
                     resourcesSwitch.innerHTML = "Hide Resources";
                 }
             }
@@ -567,12 +607,14 @@
                     map.setLayoutProperty('extruded-buildings', 'visibility', 'none');
                     buildingsSwitch.classList.toggle('on');
                     buildingsSwitch.style.backgroundColor = "#00b0e1";
+                    buildingsSwitch.style.transition = "all 300ms ease-in";
                     buildingsSwitch.innerHTML = "Show 3D Buildings"
                 }
                 else {
                     map.setLayoutProperty('extruded-buildings', 'visibility', 'visible');
                     buildingsSwitch.classList.toggle('on');
                     buildingsSwitch.style.backgroundColor = "#4600ff";
+                    buildingsSwitch.style.transition = "all 300ms ease-out";
                     buildingsSwitch.innerHTML = "Hide 3D Buildings";
                 }
             }
@@ -581,12 +623,14 @@
                     map.setLayoutProperty('satellite', 'visibility', 'none');
                     satelliteSwitch.classList.toggle('on');
                     satelliteSwitch.style.backgroundColor = "#00b0e1";
+                    satelliteSwitch.style.transition = "all 300ms ease-in";
                     satelliteSwitch.innerHTML = "Show satellite";
                 }
                 else {
                     map.setLayoutProperty('satellite', 'visibility', 'visible');
                     satelliteSwitch.classList.toggle('on');
                     satelliteSwitch.style.backgroundColor = "#4600ff";
+                    satelliteSwitch.style.transition = "all 300ms ease-out";
                     satelliteSwitch.innerHTML = "Hide satellite";
                 }
             }
@@ -626,6 +670,16 @@
                 }
             });
             map.addControl(directions, 'top-right');
+
+            // Add TechImpact locations to the map
+            for (const tifeature of TechImpactLocations.features) {
+                console.log(tifeature.geometry);
+                console.log(tifeature.geometry.coordinates);
+                //
+                const el = document.createElement('div');
+                el.className = 'tilogo';
+                new mapboxgl.Marker(el).setLngLat(tifeature.geometry.coordinates).addTo(map);
+            }
 
             // Add map content
             map.on('load', () => {
@@ -716,32 +770,6 @@
                     'paint': {
                         'fill-opacity': 0
                     }  
-                });
-
-                // Add starting point to the map
-                map.addLayer({
-                    id: 'techimpact-symbol',
-                    type: 'symbol',
-                    source: {
-                        type: 'geojson',
-                        data: {
-                            type: 'FeatureCollection',
-                            features: [
-                                {
-                                    type: 'Feature',
-                                    properties: {},
-                                    geometry: {
-                                        type: 'Point',
-                                        coordinates: TechImpactNewarkCoords
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    layout: {
-                        'icon-image': 'cat',
-                        'icon-size': 0.25
-                    }
                 });
 
                 // Add you-are-here point
@@ -1411,14 +1439,8 @@
                     }
                 ]
             };
-            map.on('weic-features', function(e) {
-                console.log("dots")
-                if (map.getSource('weic-features') && map.isSourceLoaded('dots')) {
-                    console.log('source loaded!');
-                    var features = map.querySourceFeatures('weic-features');
-                    console.log(features);
-                }
-            });
+
+
             let obstacle = turf.buffer(clearances, 0.25, { units: 'kilometers' });
             let bbox = [0, 0, 0, 0];
             let polygon = turf.bboxPolygon(bbox);
@@ -1533,11 +1555,132 @@
                     }
                 }
             });
-            
 
-            // Add Three.js functionality
+
             const THREE = window.THREE;
 
+            // parameters to ensure the model is georeferenced correctly on the map
+            var modelOrigins = [];
+            for(var i = 0; i < TechImpactLocations.features.length; i++){
+                modelOrigins.push(TechImpactLocations.features[i].geometry.coordinates);
+            }
+
+            var modelAltitude = 1;
+            var modelRotate = [Math.PI / 2, 0, 0];
+
+            var modelAsMercatorCoordinates = [];
+            for(var i = 0; i < modelOrigins.length; i++){
+                modelAsMercatorCoordinates.push(
+                    mapboxgl.MercatorCoordinate.fromLngLat(
+                        modelOrigins[i],
+                        modelAltitude
+                    )
+                );
+            }
+            console.log(modelAsMercatorCoordinates);
+
+            // transformation parameters to position, rotate and scale the 3D model onto the map
+            var modelTransforms = [];
+            for(var i = 0; i < modelAsMercatorCoordinates.length; i++){
+                modelTransforms.push(
+                    {
+                        translateX: modelAsMercatorCoordinates[i].x,
+                        translateY: modelAsMercatorCoordinates[i].y,
+                        translateZ: modelAsMercatorCoordinates[i].z,
+                        rotateX: modelRotate[0],
+                        rotateY: modelRotate[1],
+                        rotateZ: modelRotate[2], 
+                        scale: modelAsMercatorCoordinates[i].meterInMercatorCoordinateUnits()
+                    }
+                )
+            }
+            console.log(modelTransforms);
+
+            var customLayer = {
+                id: '3d-model',
+                type: 'custom',
+                renderingMode: '3d',
+                onAdd: function (map, gl) {
+                    this.camera = new THREE.Camera();
+                    this.scene = new THREE.Scene();
+
+                    // create two three.js lights to illuminate the model
+                    var directionalLight = new THREE.DirectionalLight(0xffffff);
+                    directionalLight.position.set(0, -70, 100).normalize();
+                    this.scene.add(directionalLight);
+
+                    var directionalLight2 = new THREE.DirectionalLight(0xffffff);
+                    directionalLight2.position.set(0, 70, 100).normalize();
+                    this.scene.add(directionalLight2);
+
+                    // use the three.js GLTF loader to add the 3D model to the three.js scene
+                    var loader = new THREE.GLTFLoader().setPath('../assets/custom3d/');
+                    loader.load(
+                        '34M_17.gltf',
+                    function (gltf) {
+                            console.log(gltf);
+                            this.scene.add(gltf.scene);
+                        }.bind(this)
+                    );
+                    this.map = map;
+
+                    // use the Mapbox GL JS map canvas for three.js
+                    this.renderer = new THREE.WebGLRenderer({
+                        canvas: map.getCanvas(),
+                        context: gl,
+                        antialias: true
+                    });
+
+                    this.renderer.autoClear = false;
+                },
+                render: function (gl, matrix) {
+                    //one for each TechImpactLocation.feature
+                    //
+                    for(var i = 0; i < modelTransforms.length; i++) {
+                        //
+                        var rotationX = new THREE.Matrix4().makeRotationAxis(
+                            new THREE.Vector3(1, 0, 0),
+                            modelTransforms[i].rotateX
+                        );
+                        var rotationY = new THREE.Matrix4().makeRotationAxis(
+                            new THREE.Vector3(0, 1, 0),
+                            modelTransforms[i].rotateY
+                        );
+                        var rotationZ = new THREE.Matrix4().makeRotationAxis(
+                            new THREE.Vector3(0, 0, 1),
+                            modelTransforms[i].rotateZ
+                        );
+
+                        var m = new THREE.Matrix4().fromArray(matrix);
+                        var l = new THREE.Matrix4()
+                            .makeTranslation(
+                                modelTransforms[i].translateX,
+                                modelTransforms[i].translateY,
+                                modelTransforms[i].translateZ
+                            )
+                            .scale(
+                                new THREE.Vector3(
+                                    modelTransforms[i].scale,
+                                    -modelTransforms[i].scale,
+                                    modelTransforms[i].scale
+                                )
+                            )
+                            .multiply(rotationX)
+                            .multiply(rotationY)
+                            .multiply(rotationZ);
+
+                        this.camera.projectionMatrix = m.multiply(l);
+                        this.renderer.state.reset();
+                        this.renderer.render(this.scene, this.camera);
+                        this.map.triggerRepaint();
+                    }
+                    
+                }
+            };
+
+            map.on('style.load', function () {
+                map.addLayer(customLayer, 'waterway-label');
+            });
         </script>
     </body>
 </html>
