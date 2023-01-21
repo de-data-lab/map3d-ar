@@ -10,7 +10,7 @@
         <meta http-equiv="expires" content="0">
         <meta http-equiv="pragma" content="no-cache">
         
-        <!-- Mapbox -->
+        <!-- Mapbox GL JS -->
         <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
         <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
         <!--
@@ -284,14 +284,14 @@
             }
             .no-route {
                 background-color: #d3d3d3;
-                color: #f00;
+                color: #000;
             }
-            .obstacle-found {
-                background-color: #d3d3d3;
+            .resource-found {
+                background-color: #33a532;
                 color: #fff;
             }
             .route-found {
-                background-color: #33a532;
+                background-color: #f00; /*#33a532;*/
                 color: #fff;
             }
             .card-details {
@@ -484,13 +484,13 @@
                 scrollZoom: true
             };
             var Categories = {
+                AcademicEducational: [],
+                EarlyChildhood: [], 
                 FoodNutrition: [], 
                 HealthHealthcare: [], 
-                AcademicEducational: [], 
-                EarlyChildhood: [], 
-                Recreational: [], 
-                Housing: [], 
-                MentalHealth: [], 
+                Housing: [],
+                MentalHealth: [],
+                Recreational: [],  
                 Transportation: [], 
                 Other: []
             };
@@ -538,6 +538,7 @@
                     }
                 ]
             };
+            var dotsdata = {};
             var mygeo = [0,0];
 
             // Add user location
@@ -575,10 +576,12 @@
             function error(err) {
                 console.warn(`ERROR(${err.code}): ${err.message}`);
             }
-            if ("geolocation" in navigator) { 
-                console.log("Geolocation in navigator");
-                navigator.geolocation.getCurrentPosition(success, error, options);
-            } else { console.log("Geolocation not available!"); }
+            function setMyGeolocation() {
+                if ("geolocation" in navigator) { 
+                    console.log("Geolocation in navigator");
+                    navigator.geolocation.getCurrentPosition(success, error, options);
+                } else { console.log("Geolocation not available!"); }
+            }
 
 
             // Add UI functionality onclick
@@ -683,6 +686,15 @@
 
             // Add map content
             map.on('load', () => {
+                //Images
+                map.loadImage(
+                    'https://docs.mapbox.com/mapbox-gl-js/assets/cat.png',
+                    (error, image) => {
+                        if (error) throw error;
+                        map.addImage('cat', image);
+                    });
+
+                //Sources
                 //Sources for routes
                 map.addSource('theRoute', {
                     type: 'geojson',
@@ -695,7 +707,42 @@
                     data: {
                         type: 'Feature'
                     }
-                });    
+                });
+
+                // Source for you-are-here point
+                map.addSource('mygeodata', {
+                    type: 'geojson',
+                    data: {
+                        type: 'FeatureCollection',
+                        features: [
+                            {
+                                type: 'Feature',
+                                properties: {},
+                                geometry: {
+                                    type: 'Point',
+                                    coordinates: mygeo
+                                }
+                            }
+                        ]
+                    }
+                });
+
+                //Sources for data-driven content
+                map.addSource('building', {
+                    type: 'vector',
+                    url: 'mapbox://mapbox.mapbox-streets-v8'
+                });
+                map.addSource('census-tract-shapefile', {
+                    type: 'vector',
+                    url: 'mapbox://lilmrhouse.3gd9m3do'
+                });
+                map.addSource('dots', {
+                    type: 'vector',
+                    url: 'mapbox://lilmrhouse.3atow0lv'
+                });
+                
+
+                //Layers
                 //Layers for routes
                 map.addLayer({
                     id: 'theRoute',
@@ -724,26 +771,15 @@
                     }
                 });
 
-                // Add logos
-                map.loadImage(
-                    'https://docs.mapbox.com/mapbox-gl-js/assets/cat.png',
-                    (error, image) => {
-                        if (error) throw error;
-                        map.addImage('cat', image);
-                    });
-                
-                //Sources
-                map.addSource('building', {
-                    type: 'vector',
-                    url: 'mapbox://mapbox.mapbox-streets-v8'
-                });
-                map.addSource('census-tract-shapefile', {
-                    type: 'vector',
-                    url: 'mapbox://lilmrhouse.3gd9m3do'
-                });
-                map.addSource('dots', {
-                    type: 'vector',
-                    url: 'mapbox://lilmrhouse.3atow0lv'
+                //Layer for you-are-here point
+                map.addLayer({
+                    id: 'mygeopoint',
+                    type: 'circle',
+                    source: 'mygeodata',
+                    paint: {
+                        'circle-radius': 6,
+                        'circle-color': 'black'
+                    }
                 });
 
                 //Layers
@@ -771,36 +807,8 @@
                         'fill-opacity': 0
                     }  
                 });
-
-                // Add you-are-here point
-                map.addSource('mygeodata', {
-                    type: 'geojson',
-                    data: {
-                        type: 'FeatureCollection',
-                        features: [
-                            {
-                                type: 'Feature',
-                                properties: {},
-                                geometry: {
-                                    type: 'Point',
-                                    coordinates: mygeo
-                                }
-                            }
-                        ]
-                    }
-                });
-                map.addLayer({
-                    id: 'mygeopoint',
-                    type: 'circle',
-                    source: 'mygeodata',
-                    paint: {
-                        'circle-radius': 6,
-                        'circle-color': 'black'
-                    }
-                });
-
                 
-                // Add 3D buildings
+                // Layer for 3D buildings
                 map.addLayer({
                     'id': 'extruded-buildings',
                     'type': 'fill-extrusion',
@@ -843,7 +851,7 @@
                     }
                 });
 
-                // Add WEIC resources
+                // Layer for pseudo-heatmap glow, base
                 map.addLayer({
                     'id': 'heat-glow-base',
                     'type': 'circle',
@@ -962,6 +970,8 @@
                         'circle-stroke-opacity': 1
                     }
                 });
+
+                // Layer for pseudo-heatmap glow, mid-range
                 map.addLayer({
                     'id': 'heat-glow-mid',
                     'type': 'circle',
@@ -1080,6 +1090,8 @@
                         'circle-stroke-opacity': 1
                     }
                 });
+
+                // Layer for WEIC resources
                 map.addLayer({
                     'id': 'weic-features', 
                     'type': 'circle',
@@ -1215,6 +1227,16 @@
                 );
                 categorizeDataFeatures(AllDataFeatures);
                 console.log(Categories);
+
+                setMyGeolocation();
+
+                dotsdata = map.queryRenderedFeatures({layers: ['weic-features']});
+                clearances = {
+                    type: 'FeatureCollection',
+                    features: dotsdata
+                };
+                resource = turf.buffer(clearances, 0.25, { units: 'kilometers' });
+                console.log(resource);
             });
 
             // Click functionality
@@ -1255,14 +1277,14 @@
                 const end = {
                     type: 'FeatureCollection',
                     features: [
-                    {
-                        type: 'Feature',
-                        properties: {},
-                        geometry: {
-                            type: 'Point',
-                            coordinates: coords
+                        {
+                            type: 'Feature',
+                            properties: {},
+                            geometry: {
+                                type: 'Point',
+                                coordinates: coords
+                            }
                         }
-                    }
                     ]
                 };
             });
@@ -1366,82 +1388,10 @@
             const reports = document.getElementById('reports');
             let clearances = {
                 type: 'FeatureCollection',
-                features: [
-                    {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [-84.47426, 38.06673]
-                    },
-                    properties: {
-                        clearance: "13' 2"
-                    }
-                    },
-                    {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [-84.47208, 38.06694]
-                    },
-                    properties: {
-                        clearance: "13' 7"
-                    }
-                    },
-                    {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [-84.60485, 38.12184]
-                    },
-                    properties: {
-                        clearance: "13' 7"
-                    }
-                    },
-                    {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [-84.61905, 37.87504]
-                    },
-                    properties: {
-                        clearance: "12' 0"
-                    }
-                    },
-                    {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [-84.55946, 38.30213]
-                    },
-                    properties: {
-                        clearance: "13' 6"
-                    }
-                    },
-                    {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [-84.27235, 38.04954]
-                    },
-                    properties: {
-                        clearance: "13' 6"
-                    }
-                    },
-                    {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [-84.27264, 37.82917]
-                    },
-                    properties: {
-                        clearance: "11' 6"
-                    }
-                    }
-                ]
+                features: dotsdata
             };
-
-
-            let obstacle = turf.buffer(clearances, 0.25, { units: 'kilometers' });
+            
+            let resource = turf.buffer(clearances, 0.25, { units: 'kilometers' });
             let bbox = [0, 0, 0, 0];
             let polygon = turf.bboxPolygon(bbox);
 
@@ -1452,7 +1402,7 @@
                 const heading = document.createElement('div');
                 // Set the class type based on clear value
                 heading.className =
-                    clear === true ? 'card-header route-found' : 'card-header obstacle-found';
+                    clear === true ? 'card-header route-found' : 'card-header resource-found';
                 heading.innerHTML =
                     id === 0
                     ? `${emoji} The route ${collision}`
@@ -1460,7 +1410,7 @@
 
                 const details = document.createElement('div');
                 details.className = 'card-details';
-                details.innerHTML = `This ${detail} obstacles.`;
+                details.innerHTML = `This ${detail} resources.`;
 
                 card.appendChild(heading);
                 card.appendChild(details);
@@ -1520,12 +1470,13 @@
                         // Update the box
                         map.getSource('theBox').setData(polygon);
                         
-                        const clear = turf.booleanDisjoint(obstacle, routeLine);
+                        const clear = turf.booleanDisjoint(resource, routeLine);
                         
                         if (clear === true) {
-                            collision = 'does not intersect any obstacles!';
-                            detail = `takes ${(route.duration / 60).toFixed(0)} minutes and avoids`;
-                            emoji = '✔️';
+                            // Collision did not occur
+                            collision = 'does not intersect any resources!';
+                            detail = `takes ${(route.duration / 60).toFixed(0)} minutes and finds NO`;
+                            emoji = '⚠️';
                             map.setPaintProperty('theRoute', 'line-color', '#74c476');
                             // Hide the box
                             map.setLayoutProperty('theBox', 'visibility', 'none');
@@ -1538,9 +1489,9 @@
                             // by a factor of the attempt count
                             polygon = turf.transformScale(polygon, counter * 0.01);
                             bbox = turf.bbox(polygon);
-                            collision = 'is bad.';
-                            detail = `takes ${(route.duration / 60).toFixed(0)} minutes and hits`;
-                            emoji = '⚠️';
+                            collision = 'intersects resources!';
+                            detail = `takes ${(route.duration / 60).toFixed(0)} minutes and finds`;
+                            emoji = '✔️';
                             map.setPaintProperty('theRoute', 'line-color', '#de2d26');
                         
                             // Add a randomly selected waypoint to get a new route from the Directions API
@@ -1557,6 +1508,10 @@
             });
 
 
+
+
+            // 3D Content
+            // Add 3D logic to integrate Three.js with Mapbox GL JS
             const THREE = window.THREE;
 
             // parameters to ensure the model is georeferenced correctly on the map
@@ -1678,6 +1633,7 @@
                 }
             };
 
+            // Add 3D layer
             map.on('style.load', function () {
                 map.addLayer(customLayer, 'waterway-label');
             });
