@@ -28,6 +28,7 @@
         <!-- Three.js -->
         <script src="https://unpkg.com/three@0.126.0/build/three.min.js"></script>
         <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+        <script src="js/parser.js"></script>    <!-- http://silentmatt.com/javascript-expression-evaluator/ -->
 
         <!-- D3.js  -->
         <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -1632,11 +1633,148 @@
                     
                 }
             };
-
             // Add 3D layer
             map.on('style.load', function () {
                 map.addLayer(customLayer, 'waterway-label');
             });
+
+
+            //3d graphs - topology
+            //
+            var topologyOrigin = params.center;
+            var topologyAltitude = 1;
+            var topologyRotate = [Math.PI / 2, 0, 0];
+
+            var topologyAsMercatorCoordinates = 
+                mapboxgl.MercatorCoordinate.fromLngLat(
+                    topologyOrigin,
+                    topologyAltitude
+                );
+            
+            var topologyTransform = {
+                translateX: topologyAsMercatorCoordinates.x,
+                translateY: topologyAsMercatorCoordinates.y,
+                translateZ: topologyAsMercatorCoordinates.z,
+                rotateX: topologyRotate[0],
+                rotateY: topologyRotate[1],
+                rotateZ: topologyRotate[2], 
+                scale: topologyAsMercatorCoordinates.meterInMercatorCoordinateUnits()
+            };
+            //
+            var zFuncText = "x^2 - y^2";
+            var zFunc = Parser.parse(zFuncText).toJSFunction( ['x','y']);
+
+            var a = 0.01, b = 0.01, c = 0.01, d = 0.01;
+            var segments = 20,
+                xMin = -10, xMax = 10, xRange = xMax - xMin,
+                yMin = -10, yMax = 10, yRange = yMax - yMin,
+                zMin = -10, zMax = 10, zRange = zMax - zMin;
+            var topologyGeometry;
+            var topologyMesh;
+
+            var topologyLayer = {
+                id: 'topology',
+                type: 'custom',
+                renderingMode: '3d',
+                onAdd: function (map, gl) {
+                    this.camera = new THREE.Camera();
+                    this.scene = new THREE.Scene();
+
+                    // create two three.js lights to illuminate the topology
+                    var directionalLight = new THREE.DirectionalLight(0xffffff);
+                    directionalLight.position.set(0, -70, 100).normalize();
+                    this.scene.add(directionalLight);
+
+                    var directionalLight2 = new THREE.DirectionalLight(0xffffff);
+                    directionalLight2.position.set(0, 70, 100).normalize();
+                    this.scene.add(directionalLight2);
+
+                    // create the geometry here
+                    //
+                    xRange = xMax - xMin;
+                    yRange = yMax - yMin;
+                    zFunc = Parser.parse(zFuncText).toJSFunction( ['x','y']);
+                    
+                    meshFunction = function(x, y) 
+                    {
+                        x = xRange * x + xMin;
+                        y = yRange * y + yMin;
+                        var z = zFunc(x,y);
+                        if (isNaN(z) ) { return new THREE.Vector3(0,0,0); }
+                        else { return new THREE.Vector3(x, y, z); }
+                    };
+                    topologyGeometry = new THREE.ParametricGeometry( meshFunction, segments, segments, true );
+                    //
+                    // create the material here
+                    var standardTopologyMaterial = new THREE.MeshStandardMaterial({
+                        color: 'lightblue', 
+                        roughness: .5,
+                        metalness:.02, 
+                        side: THREE.DoubleSide,
+                        wireframe: false
+                    });
+                    //
+                    // create the mesh here from the geometry and the material
+                    if (topologyMesh) { 
+                        this.scene.remove( topologyMesh ); 
+                    }
+                    topologyMesh = new THREE.Mesh( topologyGeometry, standardTopologyMaterial );
+                    topologyMesh.doubleSided = true;
+                    this.scene.add(topologyMesh);
+                    //
+                    // end of creating the topology
+
+                    // use the Mapbox GL JS map canvas for three.js
+                    this.renderer = new THREE.WebGLRenderer({
+                        canvas: map.getCanvas(),
+                        context: gl,
+                        antialias: true
+                    });
+                    this.renderer.autoClear = false;
+                },
+                render: function (gl, matrix) {
+                    var rotationX = new THREE.Matrix4().makeRotationAxis(
+                        new THREE.Vector3(1, 0, 0),
+                        topologyTransform.rotateX
+                    );
+                    var rotationY = new THREE.Matrix4().makeRotationAxis(
+                        new THREE.Vector3(0, 1, 0),
+                        topologyTransform.rotateY
+                    );
+                    var rotationZ = new THREE.Matrix4().makeRotationAxis(
+                        new THREE.Vector3(0, 0, 1),
+                        topologyTransform.rotateZ
+                    );
+                    var m = new THREE.Matrix4().fromArray(matrix);
+                    var l = new THREE.Matrix4()
+                        .makeTranslation(
+                            topologyTransform.translateX,
+                            topologyTransform.translateY,
+                            topologyTransform.translateZ
+                        )
+                        .scale(
+                            new THREE.Vector3(
+                                topologyTransform.scale,
+                                -topologyTransform.scale,
+                                topologyTransform.scale
+                            )
+                        )
+                        .multiply(rotationX)
+                        .multiply(rotationY)
+                        .multiply(rotationZ);
+
+                    this.camera.projectionMatrix = m.multiply(l);
+                    this.renderer.state.reset();
+                    this.renderer.render(this.scene, this.camera);
+                    this.map.triggerRepaint();
+                }
+            };
+
+            // Add 3D layer
+            map.on('style.load', function () {
+                map.addLayer(topologyLayer, 'waterway-label');
+            });
+
         </script>
     </body>
 </html>
