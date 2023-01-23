@@ -679,9 +679,9 @@
                 accessToken: mapboxgl.accessToken,
                 unit: 'metric',
                 profile: 'mapbox/driving',
-                alternatives: false,
+                alternatives: true,
                 geometries: 'geojson',
-                controls: { instructions: false },
+                controls: { instructions: true },
                 flyTo: false,
                 bbox: [params.center[0]-2, params.center[1]-2, params.center[0]+2, params.center[1]+2], // Boundary for Berkeley
                 proximity: {
@@ -799,7 +799,7 @@
                         'text-field': 'You are here'
                     },
                     paint: {
-                        'text-color': 'white',
+                        'text-color': 'yellow',
                         'text-translate': [0, 35]
                     }
                 });
