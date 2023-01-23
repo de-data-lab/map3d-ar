@@ -360,6 +360,13 @@
                     <table class="cattable">
                         <tr>
                             <td class="checkboxlabel">
+                                <input class="filter_All" id="AllCategories" value="AllCategories" type="checkbox"
+                                    onclick="selectAllCats(this)"
+                                    checked="checked">ALL</input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="checkboxlabel">
                                 <input class="filter_AcademicEducational" id="AcademicEducational" name="filters" value="AcademicEducational" type="checkbox"
                                     onchange="filterCatsUpdate.call(this, event)"
                                     checked="checked">Academic & Educational</input>
@@ -510,6 +517,7 @@
             };
 
             const catlist = document.getElementById('catlist');
+            const filtercatsboxes = document.getElementsByName('filters');
             const youarehereSwitch = document.getElementById('youarehere');
             const satelliteSwitch = document.getElementById('satellite');
             const buildingsSwitch = document.getElementById('extruded-buildings');
@@ -576,10 +584,11 @@
                     ]
                 };
                 map.getSource('mygeodata').setData(mygeodata);
+                /*
                 map.flyTo({
                     center: mygeo,
                     essential: true
-                });
+                }); */
             }
             function error(err) {
                 console.warn(`ERROR(${err.code}): ${err.message}`);
@@ -1258,6 +1267,7 @@
                     features: dotsdata
                 };
                 resource = turf.buffer(clearances, 0.25, { units: 'kilometers' });
+                console.log(clearances.features[0]._geometry);
                 console.log(resource);
             });
 
@@ -1324,6 +1334,13 @@
                     if (all[i].MentalHealth == "X") { Categories.MentalHealth.push(all[i]); };
                     if (all[i].Transportation == "X") { Categories.Transportation.push(all[i]); };
                     if (all[i].Other == "X") { Categories.Other.push(all[i]); };
+                }
+            }
+            function selectAllCats(source) {
+                console.log(source);
+                //
+                for (var i = 0; i < filtercatsboxes.length; i++){
+                    filtercatsboxes[i].checked = source.checked;
                 }
             }
             function printCategories(df) {
