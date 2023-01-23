@@ -658,7 +658,7 @@
             });
 
             // Add navigation (zoom and rotation) controls
-            map.addControl(new mapboxgl.NavigationControl());
+            map.addControl(new mapboxgl.NavigationControl(), 'top-left');
 
             // Add the routes UI
             const directions = new MapboxDirections({
