@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -28,7 +28,6 @@
         <!-- Three.js -->
         <script src="https://unpkg.com/three@0.126.0/build/three.min.js"></script>
         <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
-        <script src="js/parser.js"></script>    <!-- http://silentmatt.com/javascript-expression-evaluator/ -->
 
         <!-- D3.js  -->
         <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -657,6 +656,9 @@
                     position: 'bottom-left'
                 }
             });
+
+            // Add navigation (zoom and rotation) controls
+            map.addControl(new mapboxgl.NavigationControl());
 
             // Add the routes UI
             const directions = new MapboxDirections({
@@ -1429,7 +1431,7 @@
                 // Add details to the individual report
                 const details = document.createElement('div');
                 details.className = 'card-details';
-                details.innerHTML = `No clear route found in ${counter} tries.`;
+                details.innerHTML = `Resources found in all routes, in ${counter} tries.`;
 
                 card.appendChild(heading);
                 card.appendChild(details);
@@ -1514,6 +1516,7 @@
             // 3D Content
             // Add 3D logic to integrate Three.js with Mapbox GL JS
             const THREE = window.THREE;
+            const Parser = window.Parser;
 
             // parameters to ensure the model is georeferenced correctly on the map
             var modelOrigins = [];
@@ -1641,6 +1644,7 @@
 
             //3d graphs - topology
             //
+            /*
             var topologyOrigin = params.center;
             var topologyAltitude = 1;
             var topologyRotate = [Math.PI / 2, 0, 0];
@@ -1671,6 +1675,7 @@
                 zMin = -10, zMax = 10, zRange = zMax - zMin;
             var topologyGeometry;
             var topologyMesh;
+            */
 
             var topologyLayer = {
                 id: 'topology',
@@ -1689,11 +1694,12 @@
                     directionalLight2.position.set(0, 70, 100).normalize();
                     this.scene.add(directionalLight2);
 
+                    /*
                     // create the geometry here
                     //
                     xRange = xMax - xMin;
                     yRange = yMax - yMin;
-                    zFunc = Parser.parse(zFuncText).toJSFunction( ['x','y']);
+                    //zFunc = Parser.parse(zFuncText).toJSFunction( ['x','y']);
                     
                     meshFunction = function(x, y) 
                     {
@@ -1721,6 +1727,7 @@
                     topologyMesh = new THREE.Mesh( topologyGeometry, standardTopologyMaterial );
                     topologyMesh.doubleSided = true;
                     this.scene.add(topologyMesh);
+                    console.log(topologyMesh);
                     //
                     // end of creating the topology
 
@@ -1731,8 +1738,10 @@
                         antialias: true
                     });
                     this.renderer.autoClear = false;
+                    */
                 },
                 render: function (gl, matrix) {
+                    /*
                     var rotationX = new THREE.Matrix4().makeRotationAxis(
                         new THREE.Vector3(1, 0, 0),
                         topologyTransform.rotateX
@@ -1767,6 +1776,7 @@
                     this.renderer.state.reset();
                     this.renderer.render(this.scene, this.camera);
                     this.map.triggerRepaint();
+                    */
                 }
             };
 
