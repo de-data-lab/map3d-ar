@@ -361,7 +361,12 @@
                         <tr>
                             <td class="checkboxlabel">
                                 <input class="filter_All" id="AllCategories" value="AllCategories" type="checkbox"
-                                    onclick="selectAllCats(this)"
+                                    onclick="
+                                        for (var i = 0; i < filtercatsboxes.length; i++){
+                                            filtercatsboxes[i].checked = this.checked;
+                                        }
+                                    "
+                                    onchange="selectAllCatsUpdate.call(this, event)"
                                     checked="checked">ALL</input>
                             </td>
                         </tr>
@@ -1336,13 +1341,6 @@
                     if (all[i].Other == "X") { Categories.Other.push(all[i]); };
                 }
             }
-            function selectAllCats(source) {
-                console.log(source);
-                //
-                for (var i = 0; i < filtercatsboxes.length; i++){
-                    filtercatsboxes[i].checked = source.checked;
-                }
-            }
             function printCategories(df) {
                 console.log(df);
                 //
@@ -1357,6 +1355,42 @@
                 if (df.Transportation == "X") { output += "Transportation<br/>" };
                 if (df.Other == "X") { output += "Other<br>" };
                 return output;
+            }
+
+            // (De)select all resources
+            function selectAllCatsUpdate(e) {
+                var defaultarray = [
+                                        'all',
+                                        ['!=', 'OrganizationName', 'NA']
+                                    ]
+                                ;
+                var allarray = [
+                                    'all',
+                                    ['!=','OrganizationName','NA'],
+                                    ['!=','AcademicEducational','X'],
+                                    ['!=','EarlyChildhood','X'],
+                                    ['!=','FoodNutrition','X'],
+                                    ['!=','HealthHealthcare','X'],
+                                    ['!=','Housing','X'],
+                                    ['!=','MentalHealth','X'],
+                                    ['!=','Recreational','X'],
+                                    ['!=','Transportation','X'],
+                                    ['!=','Other','X']
+                                ]
+                            ;
+                //
+                if (!e.target.checked) { 
+                    console.log(`Now it is Unchecked`); 
+                    map.setFilter('weic-features', allarray);
+                    map.setFilter('heat-glow-base', allarray);
+                    map.setFilter('heat-glow-mid', allarray);
+                }
+                else if (e.target.checked) { 
+                    console.log(`Now it is Checked`); 
+                    map.setFilter('weic-features', defaultarray);
+                    map.setFilter('heat-glow-base', defaultarray);
+                    map.setFilter('heat-glow-mid', defaultarray);
+                }
             }
 
             // Filter resources by category
@@ -1402,6 +1436,7 @@
                     */
                 }
                 console.log({filterarray});
+                console.log(JSON.stringify(filterarray));
 
                 if (!e.target.checked) { 
                     console.log("Now it is Unchecked"); 
