@@ -248,10 +248,10 @@
             #satellite {
                 background-color: #00b0e1;
             }
-            #extruded-buildings, #resources {
+            #extruded-buildings, #resources, #youarehere {
                 background-color: #4600ff;
             }
-            #satellite, #extruded-buildings, #resources {
+            #satellite, #extruded-buildings, #resources, #youarehere {
                 color: #fff;
                 margin: 10px 10px 10px 10px;
                 border-radius: 0.5em;
@@ -337,10 +337,13 @@
                 <p class="faded">A 3D map of data from the Wilmington Educational Improvement Commission (WEIC).</p>
                 <p class="faded">This map lists and categorizes resources in Education, Nutrition, Healthcare, Transportation, and so many more.</p>
 
+                <!-- Fly to you-are-here location -->
+                <h3 class="faded">You Are Here</h3>
+                <div id="youarehere" class="faded">Fly To Your Location</div>
+
                 <!-- Turn on/off layers -->
                 <h3 class="faded">On/Off</h3>
                 <div id="resources" class="on faded">Hide Resources</div>
-                <span></span>
                 <div id="extruded-buildings" class="on faded">Hide 3D Buildings</div>
                 <div id="satellite" class="faded">Add satellite</div>
 
@@ -507,6 +510,7 @@
             };
 
             const catlist = document.getElementById('catlist');
+            const youarehereSwitch = document.getElementById('youarehere');
             const satelliteSwitch = document.getElementById('satellite');
             const buildingsSwitch = document.getElementById('extruded-buildings');
             const resourcesSwitch = document.getElementById('resources');
@@ -572,6 +576,10 @@
                     ]
                 };
                 map.getSource('mygeodata').setData(mygeodata);
+                map.flyTo({
+                    center: mygeo,
+                    essential: true
+                });
             }
             function error(err) {
                 console.warn(`ERROR(${err.code}): ${err.message}`);
@@ -585,6 +593,12 @@
 
 
             // Add UI functionality onclick
+            youarehereSwitch.onclick = () => {
+                map.flyTo({
+                    center: mygeo,
+                    essential: true // this animation is considered essential with respect to prefers-reduced-motion
+                });
+            };
             resourcesSwitch.onclick = () => {
                 if (resourcesSwitch.classList.contains("on")) {
                     map.setLayoutProperty('weic-features', 'visibility', 'none');
@@ -777,11 +791,16 @@
                 //Layer for you-are-here point
                 map.addLayer({
                     id: 'mygeopoint',
-                    type: 'circle',
+                    type: 'symbol',
                     source: 'mygeodata',
+                    layout: {
+                        'icon-image': 'cat',
+                        'icon-size': 0.15,
+                        'text-field': 'You are here'
+                    },
                     paint: {
-                        'circle-radius': 6,
-                        'circle-color': 'black'
+                        'text-color': 'white',
+                        'text-translate': [0, 35]
                     }
                 });
 
