@@ -19,7 +19,6 @@
         <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js"></script>
         <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css" type="text/css">
         
-
         <!-- Turf.js -->
         <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
         <!-- Polyline -->
@@ -28,6 +27,9 @@
         <!-- Three.js -->
         <script src="https://unpkg.com/three@0.126.0/build/three.min.js"></script>
         <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+
+        <!-- Parser.js -->
+        <script src="../js/parser.js"></script>
 
         <!-- D3.js  -->
         <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -476,6 +478,12 @@
 
         <!-- JavaScript -->
         <script>
+            const THREE = window.THREE;
+
+            console.log(
+                Parser.evaluate('6 * x', { x: 7 })
+            );
+
             const params = {
                 accessToken: 'pk.eyJ1IjoibGlsbXJob3VzZSIsImEiOiJja3d1cm5nOHQxdDlrMnZueWY4dzlrbHY2In0.g14m2o2rHvNYYdDSsjwmqQ',
                 styles: {
@@ -551,6 +559,33 @@
                         properties: {
                             title: 'Tech Impact ~ CSC Station',
                             description: 'Wilmington, DE'
+                        }
+                    }
+                ]
+            };
+            const TopologyLocations = {
+                type: 'FeatureCollection',
+                features: [
+                    {
+                        type: 'Feature',
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [0, 0]
+                            },
+                        properties: {
+                            title: 'Atlantic',
+                            description: 'Near Africa'
+                        }
+                    },
+                    {
+                        type: 'Feature',
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [39.73657, -75.55143]
+                            },
+                        properties: {
+                            title: 'Antarctic',
+                            description: 'In Antarctica'
                         }
                     }
                 ]
@@ -758,6 +793,24 @@
                     }
                 });
 
+                //Source for params.center point
+                map.addSource('parametricCenter', {
+                    type: 'geojson',
+                    data: {
+                        type: 'FeatureCollection',
+                        features: [
+                            {
+                                type: 'Feature',
+                                properties: {},
+                                geometry: {
+                                    type: 'Point',
+                                    coordinates: params.center
+                                }
+                            }
+                        ]
+                    }
+                });
+
                 //Sources for data-driven content
                 map.addSource('building', {
                     type: 'vector',
@@ -799,6 +852,19 @@
                         'fill-color': '#FFC300',
                         'fill-opacity': 0.5,
                         'fill-outline-color': '#FFC300'
+                    }
+                });
+
+                //Layer for parametric center
+                map.addLayer({
+                    id: 'paramscenterpoint',
+                    type: 'circle',
+                    source: 'parametricCenter',
+                    layout: {},
+                    paint: {
+                        'circle-opacity': 0,    //set this >0, <1 to see the point
+                        'circle-color': 'white',
+                        'circle-radius': 120
                     }
                 });
 
@@ -1586,9 +1652,7 @@
 
             // 3D Content
             // Add 3D logic to integrate Three.js with Mapbox GL JS
-            const THREE = window.THREE;
-            const Parser = window.Parser;
-
+            //
             // parameters to ensure the model is georeferenced correctly on the map
             var modelOrigins = [];
             for(var i = 0; i < TechImpactLocations.features.length; i++){
@@ -1647,10 +1711,11 @@
                     var loader = new THREE.GLTFLoader();
                     loader.load(
                         'https://docs.mapbox.com/mapbox-gl-js/assets/34M_17/34M_17.gltf',
-                    function (gltf) {
-                            console.log(gltf);
-                            this.scene.add(gltf.scene);
-                        }.bind(this)
+                        function (gltf) {
+                                gltf.name = "PowerTower";
+                                console.log(gltf);
+                                this.scene.add(gltf.scene);
+                            }.bind(this)
                     );
                     this.map = map;
 
@@ -1704,7 +1769,6 @@
                         this.renderer.render(this.scene, this.camera);
                         this.map.triggerRepaint();
                     }
-                    
                 }
             };
             // Add 3D layer
@@ -1715,7 +1779,6 @@
 
             //3d graphs - topology
             //
-            /*
             var topologyOrigin = params.center;
             var topologyAltitude = 1;
             var topologyRotate = [Math.PI / 2, 0, 0];
@@ -1736,6 +1799,7 @@
                 scale: topologyAsMercatorCoordinates.meterInMercatorCoordinateUnits()
             };
             //
+
             var zFuncText = "x^2 - y^2";
             var zFunc = Parser.parse(zFuncText).toJSFunction( ['x','y']);
 
@@ -1746,7 +1810,6 @@
                 zMin = -10, zMax = 10, zRange = zMax - zMin;
             var topologyGeometry;
             var topologyMesh;
-            */
 
             var topologyLayer = {
                 id: 'topology',
@@ -1765,22 +1828,25 @@
                     directionalLight2.position.set(0, 70, 100).normalize();
                     this.scene.add(directionalLight2);
 
-                    /*
                     // create the geometry here
-                    //
                     xRange = xMax - xMin;
                     yRange = yMax - yMin;
-                    //zFunc = Parser.parse(zFuncText).toJSFunction( ['x','y']);
+                    zFunc = Parser.parse(zFuncText).toJSFunction( ['x','y']);
                     
                     meshFunction = function(x, y) 
                     {
                         x = xRange * x + xMin;
                         y = yRange * y + yMin;
                         var z = zFunc(x,y);
-                        if (isNaN(z) ) { return new THREE.Vector3(0,0,0); }
-                        else { return new THREE.Vector3(x, y, z); }
+                        if (isNaN(z) ) { 
+                            return new THREE.Vector3(0,0,0); 
+                        }
+                        else { 
+                            return new THREE.Vector3(x, y, z); 
+                        }
                     };
-                    topologyGeometry = new THREE.ParametricGeometry( meshFunction, segments, segments, true );
+                    topologyGeometry = new THREE.ParametricGeometry( meshFunction(segments, segments));
+
                     //
                     // create the material here
                     var standardTopologyMaterial = new THREE.MeshStandardMaterial({
@@ -1791,28 +1857,32 @@
                         wireframe: false
                     });
                     //
+                    
                     // create the mesh here from the geometry and the material
                     if (topologyMesh) { 
                         this.scene.remove( topologyMesh ); 
                     }
                     topologyMesh = new THREE.Mesh( topologyGeometry, standardTopologyMaterial );
                     topologyMesh.doubleSided = true;
-                    this.scene.add(topologyMesh);
+                    topologyMesh.name = "topologyMesh";
                     console.log(topologyMesh);
+                    this.scene.add(topologyMesh);
                     //
                     // end of creating the topology
 
+                    this.map = map;
+
                     // use the Mapbox GL JS map canvas for three.js
                     this.renderer = new THREE.WebGLRenderer({
+                        alpha: true,
                         canvas: map.getCanvas(),
                         context: gl,
                         antialias: true
                     });
+                    this.renderer.shadowMap.enabled = true;
                     this.renderer.autoClear = false;
-                    */
                 },
                 render: function (gl, matrix) {
-                    /*
                     var rotationX = new THREE.Matrix4().makeRotationAxis(
                         new THREE.Vector3(1, 0, 0),
                         topologyTransform.rotateX
@@ -1847,7 +1917,6 @@
                     this.renderer.state.reset();
                     this.renderer.render(this.scene, this.camera);
                     this.map.triggerRepaint();
-                    */
                 }
             };
 
@@ -1855,7 +1924,6 @@
             map.on('style.load', function () {
                 map.addLayer(topologyLayer, 'waterway-label');
             });
-
         </script>
     </body>
 </html>
