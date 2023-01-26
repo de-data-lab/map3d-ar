@@ -1383,13 +1383,8 @@
                 }
                 else if (CensusTract.length > 0) {
                     console.log("entered second");
-                    console.log(CensusTract[0].NAME);
-                    const clickcoordinates = [ parseFloat(CensusTract[0].INTPTLON), parseFloat(CensusTract[0].INTPTLAT) ];
-                    while (Math.abs(e.lngLat.lng - clickcoordinates[0]) > 180) {
-                        clickcoordinates[0] += e.lngLat.lng > clickcoordinates[0] ? 360 : -360;
-                    }
                     new mapboxgl.Popup()
-                    .setLngLat(clickcoordinates)
+                    .setLngLat(e.lngLat)
                     .setHTML(
                         `<b>Census Tract: ` + CensusTract[0].NAME + `</b><br>`
                     )
