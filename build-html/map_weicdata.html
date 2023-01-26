@@ -818,7 +818,11 @@
                 });
                 map.addSource('census-tract-shapefile', {
                     type: 'vector',
-                    url: 'mapbox://lilmrhouse.3gd9m3do'
+                    url: 'mapbox://lilmrhouse.d98p8764'
+                });
+                map.addSource('census-block-shapefile', {
+                    type: 'vector',
+                    url: 'mapbox://lilmrhouse.dmq52p9v'
                 });
                 map.addSource('dots', {
                     type: 'vector',
@@ -901,7 +905,7 @@
                     'id': 'census-tract-fills',
                     'type': 'fill',
                     'source': 'census-tract-shapefile',
-                    'source-layer': 'tl_2020_10_tract-9uewme',
+                    'source-layer': 'tl_rd22_10_tract-1lsr75',
                     'layout': {
                         'visibility': 'visible'
                     },
@@ -1356,8 +1360,11 @@
                     (feature) => feature.properties
                 );
 
+                console.log("DataFeature.length = " + DataFeature.length);
+                console.log("CensusTract.length = " + CensusTract.length);
                 //outputting resource data in a popup
-                if (DataFeature.length > 0) {
+                if (DataFeature.length > 0 && CensusTract.length > 0) {
+                    console.log("entered first");
                     const clickcoordinates = [ DataFeature[0].Longitude, DataFeature[0].Latitude ];
                     while (Math.abs(e.lngLat.lng - clickcoordinates[0]) > 180) {
                         clickcoordinates[0] += e.lngLat.lng > clickcoordinates[0] ? 360 : -360;
@@ -1371,6 +1378,20 @@
                         `<br>` +
                         `<b>` + printCategories(DataFeature[0]) + `</b><br>` +
                         DataFeature[0].Description + `<br>`
+                    )
+                    .addTo(map);
+                }
+                else if (CensusTract.length > 0) {
+                    console.log("entered second");
+                    console.log(CensusTract[0].NAME);
+                    const clickcoordinates = [ parseFloat(CensusTract[0].INTPTLON), parseFloat(CensusTract[0].INTPTLAT) ];
+                    while (Math.abs(e.lngLat.lng - clickcoordinates[0]) > 180) {
+                        clickcoordinates[0] += e.lngLat.lng > clickcoordinates[0] ? 360 : -360;
+                    }
+                    new mapboxgl.Popup()
+                    .setLngLat(clickcoordinates)
+                    .setHTML(
+                        `<b>Census Tract: ` + CensusTract[0].NAME + `</b><br>`
                     )
                     .addTo(map);
                 }
