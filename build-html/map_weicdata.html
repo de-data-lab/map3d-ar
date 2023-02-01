@@ -1811,16 +1811,16 @@
                 var maxElevation = Math.pow(Math.abs(destination[0]*destination[1]), 0.5) * 80000;
 
                 var increment = new Array(
-                    (params.center[0] + destination[0]) / 2 / arcSegments,
-                    (params.center[1] + destination[1]) / 2 / arcSegments
+                    ((-1 * params.center[0]) + destination[0]) / 2 / arcSegments,
+                    ((-1 * params.center[1]) + destination[1]) / 2 / arcSegments
                 );
                 console.log(increment);
 
                 line = [];
                 for (var l = 0; l <= arcSegments; l++) {
                     var waypoint = new Array(
-                        (params.center[0] + (increment[0] * l )),
-                        (params.center[1] + (increment[1] * l ))
+                        (params.center[0] + (increment[0] * l * 2)),
+                        (params.center[1] + (increment[1] * l * 2))
                     );
                     var waypointElevation = Math.sin(Math.PI * l / arcSegments) * maxElevation;
                     waypoint.push(waypointElevation);
