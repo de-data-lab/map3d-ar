@@ -28,6 +28,9 @@
         <script src="https://unpkg.com/three@0.126.0/build/three.min.js"></script>
         <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
 
+        <!-- Threebox -->
+        <script src="../node_modules/threebox-plugin/dist/threebox.js"></script>
+
         <!-- Parser.js -->
         <script src="./js/parser.js"></script>
 
@@ -1795,150 +1798,65 @@
 
             //3d graphs - topology
             //
-            var topologyOrigin = params.center;
-            var topologyAltitude = 1;
-            var topologyRotate = [Math.PI / 2, 0, 0];
+            // randomly generate some line arcs (not essential for understanding this demo)
+            var lines = [];
+            var arcSegments = 30;
 
-            var topologyAsMercatorCoordinates = 
-                mapboxgl.MercatorCoordinate.fromLngLat(
-                    topologyOrigin,
-                    topologyAltitude
+            for (var i = 0; i < TopologyLocations.features.length; i++) {
+                //var line = [];
+
+                var destination = TopologyLocations.features[i].geometry.coordinates;
+                console.log(destination);
+
+                var maxElevation = Math.pow(Math.abs(destination[0]*destination[1]), 0.5) * 80000;
+
+                var increment = new Array(
+                    (params.center[0] + destination[0]) / 2 / arcSegments,
+                    (params.center[1] + destination[1]) / 2 / arcSegments
                 );
-            
-            var topologyTransform = {
-                translateX: topologyAsMercatorCoordinates.x,
-                translateY: topologyAsMercatorCoordinates.y,
-                translateZ: topologyAsMercatorCoordinates.z,
-                rotateX: topologyRotate[0],
-                rotateY: topologyRotate[1],
-                rotateZ: topologyRotate[2], 
-                scale: topologyAsMercatorCoordinates.meterInMercatorCoordinateUnits()
-            };
-            //
+                console.log(increment);
 
-            var zFuncText = "x^2 - y^2";
-            var zFunc = Parser.parse(zFuncText).toJSFunction( ['x','y']);
-
-            var a = 0.01, b = 0.01, c = 0.01, d = 0.01;
-            var segments = 20,
-                xMin = -10, xMax = 10, xRange = xMax - xMin,
-                yMin = -10, yMax = 10, yRange = yMax - yMin,
-                zMin = -10, zMax = 10, zRange = zMax - zMin;
-            var topologyGeometry;
-            var topologyMesh;
-
-            var topologyLayer = {
-                id: 'topology',
-                type: 'custom',
-                renderingMode: '3d',
-                onAdd: function (map, gl) {
-                    this.camera = new THREE.Camera();
-                    this.scene = new THREE.Scene();
-
-                    // create two three.js lights to illuminate the topology
-                    var directionalLight = new THREE.DirectionalLight(0xffffff);
-                    directionalLight.position.set(0, -70, 100).normalize();
-                    this.scene.add(directionalLight);
-
-                    var directionalLight2 = new THREE.DirectionalLight(0xffffff);
-                    directionalLight2.position.set(0, 70, 100).normalize();
-                    this.scene.add(directionalLight2);
-
-                    // create the geometry here
-                    xRange = xMax - xMin;
-                    yRange = yMax - yMin;
-                    zFunc = Parser.parse(zFuncText).toJSFunction( ['x','y']);
-                    
-                    meshFunction = function(x, y) 
-                    {
-                        x = xRange * x + xMin;
-                        y = yRange * y + yMin;
-                        var z = zFunc(x,y);
-                        if (isNaN(z) ) { 
-                            return new THREE.Vector3(0,0,0); 
-                        }
-                        else { 
-                            return new THREE.Vector3(x, y, z); 
-                        }
-                    };
-                    topologyGeometry = new THREE.ParametricGeometry( meshFunction(segments, segments));
-
-                    //
-                    // create the material here
-                    var standardTopologyMaterial = new THREE.MeshStandardMaterial({
-                        color: 'lightblue', 
-                        roughness: .5,
-                        metalness:.02, 
-                        side: THREE.DoubleSide,
-                        wireframe: false
-                    });
-                    //
-                    
-                    // create the mesh here from the geometry and the material
-                    if (topologyMesh) { 
-                        this.scene.remove( topologyMesh ); 
-                    }
-                    topologyMesh = new THREE.Mesh( topologyGeometry, standardTopologyMaterial );
-                    topologyMesh.doubleSided = true;
-                    topologyMesh.name = "topologyMesh";
-                    console.log(topologyMesh);
-                    this.scene.add(topologyMesh);
-                    //
-                    // end of creating the topology
-
-                    this.map = map;
-
-                    // use the Mapbox GL JS map canvas for three.js
-                    this.renderer = new THREE.WebGLRenderer({
-                        alpha: true,
-                        canvas: map.getCanvas(),
-                        context: gl,
-                        antialias: true
-                    });
-                    this.renderer.shadowMap.enabled = true;
-                    this.renderer.autoClear = false;
-                },
-                render: function (gl, matrix) {
-                    var rotationX = new THREE.Matrix4().makeRotationAxis(
-                        new THREE.Vector3(1, 0, 0),
-                        topologyTransform.rotateX
+                line = [];
+                for (var l = 0; l <= arcSegments; l++) {
+                    var waypoint = new Array(
+                        (params.center[0] + (increment[0] * l )),
+                        (params.center[1] + (increment[1] * l ))
                     );
-                    var rotationY = new THREE.Matrix4().makeRotationAxis(
-                        new THREE.Vector3(0, 1, 0),
-                        topologyTransform.rotateY
-                    );
-                    var rotationZ = new THREE.Matrix4().makeRotationAxis(
-                        new THREE.Vector3(0, 0, 1),
-                        topologyTransform.rotateZ
-                    );
-                    var m = new THREE.Matrix4().fromArray(matrix);
-                    var l = new THREE.Matrix4()
-                        .makeTranslation(
-                            topologyTransform.translateX,
-                            topologyTransform.translateY,
-                            topologyTransform.translateZ
-                        )
-                        .scale(
-                            new THREE.Vector3(
-                                topologyTransform.scale,
-                                -topologyTransform.scale,
-                                topologyTransform.scale
-                            )
-                        )
-                        .multiply(rotationX)
-                        .multiply(rotationY)
-                        .multiply(rotationZ);
-
-                    this.camera.projectionMatrix = m.multiply(l);
-                    this.renderer.state.reset();
-                    this.renderer.render(this.scene, this.camera);
-                    this.map.triggerRepaint();
+                    var waypointElevation = Math.sin(Math.PI * l / arcSegments) * maxElevation;
+                    waypoint.push(waypointElevation);
+                    line.push(waypoint);
                 }
-            };
+                lines.push(line);
+            }
+            console.log('lineGeometries of the lines: ', lines);
 
             // Add 3D layer
             map.on('style.load', function () {
-                map.addLayer(topologyLayer, 'waterway-label');
+                map.addLayer({
+                    id: 'custom_layer',
+                    type: 'custom',
+                    renderingMode: '3d',
+                    onAdd: function(map, mbxContext) {
+                        //instantiate threebox
+                        window.tb = new Threebox(
+                            map, 
+                            mbxContext,
+                            { defaultLights: true }
+                        );
+                        for (line of lines) {
+                            var lineOptions = {
+                                geometry: line,
+                                color: (line[1][1]/180) * 0xffffff,
+                                width: Math.random() + 20
+                            }
+                            let lineMesh = tb.line(lineOptions);
+                            tb.add(lineMesh);
+                        }
+                    },
+                    render: function(gl, matrix) {
+                        tb.update();
+                    }
+                });
             });
         </script>
     </body>
