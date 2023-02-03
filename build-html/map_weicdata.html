@@ -510,6 +510,9 @@
                 scrollZoom: true,
                 antialias: true
             };
+            var otherbranches = [];
+            var clickcoordinates = [];
+            var AllDataFeatures = [];
             var Categories = {
                 AcademicEducational: [],
                 EarlyChildhood: [], 
@@ -521,7 +524,7 @@
                 Transportation: [], 
                 Other: []
             };
-            var CategoryColors = {
+            const CategoryColors = {
                 FoodNutrition: "#A8E10C",       //A8E10C - Kelly Green
                 HealthHealthcare: "#FF5765",    //FF5765 - Coral
                 AcademicEducational: "#01DEE6", //01DEE6 - Teal
@@ -621,8 +624,7 @@
                 map.flyTo({
                     center: TopologyLocations.features[0].geometry.coordinates,
                     essential: true
-                });
-                */
+                });*/
             }
             function error(err) {
                 console.warn(`ERROR(${err.code}): ${err.message}`);
@@ -1323,7 +1325,7 @@
 
             // Collect all loaded resources into an object
             map.once('idle', () => {
-                const AllDataFeatures = map.queryRenderedFeatures({layers: ['weic-features']}).map(
+                AllDataFeatures = map.queryRenderedFeatures({layers: ['weic-features']}).map(
                     (features) => features.properties
                 );
                 categorizeDataFeatures(AllDataFeatures);
@@ -1343,6 +1345,8 @@
 
             // Click functionality
             map.on('click', function(e) {
+                console.log(e);
+                //
                 //setting access for variables from data layers
                 const CensusTract = map.queryRenderedFeatures(e.point, {
                     layers: ['census-tract-fills']
@@ -1360,7 +1364,7 @@
                 //outputting resource data in a popup
                 if (DataFeature.length > 0 && CensusTract.length > 0) {
                     console.log("entered first");
-                    const clickcoordinates = [ DataFeature[0].Longitude, DataFeature[0].Latitude ];
+                    clickcoordinates = [ DataFeature[0].Longitude, DataFeature[0].Latitude ];
                     while (Math.abs(e.lngLat.lng - clickcoordinates[0]) > 180) {
                         clickcoordinates[0] += e.lngLat.lng > clickcoordinates[0] ? 360 : -360;
                     }
@@ -1375,6 +1379,99 @@
                         DataFeature[0].Description + `<br>`
                     )
                     .addTo(map);
+                    //
+                    //
+                    // create 3D layer for other branches of the clicked resource
+                    //create an array to store the geocoordinates of all branches, starting with the clicked one
+                    otherbranches = [{
+                        type: 'FeatureCollection',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [ DataFeature[0].Longitude, DataFeature[0].Latitude ]
+                        }
+                    }];
+                    for (var q = 0; q < AllDataFeatures.length; q++){
+                        //
+                        console.log("entered loop");
+                        //
+                        // iterate through all the data points on the map
+                        // and for each one with the same name, push its geocoordinates to the array
+                        if (DataFeature[0].OrganizationName == AllDataFeatures[q].OrganizationName) {
+                            var match = {
+                                type: "FeatureCollection",
+                                geometry: {
+                                    type:"Point",
+                                    coordinates: [ AllDataFeatures[q].Longitude, AllDataFeatures[q].Latitude ]
+                                }
+                            };
+                            console.log(JSON.stringify(match));
+                            console.log(JSON.stringify(otherbranches));
+                            otherbranches.push(match);
+                        }
+                    }
+                    console.log(otherbranches);
+                    //
+                    // Threebox
+                    // Creating 'spider lines' for the resource with many locations
+                    var lines = [];
+                    var arcSegments = 30;
+
+                    for (var i = 0; i < otherbranches.length; i++) {
+                        //
+                        console.log(i + ": " + otherbranches[i].geometry.coordinates);
+                        //
+                        var destination = otherbranches[i].geometry.coordinates;
+                        console.log(destination);
+
+                        var maxElevation = Math.pow(Math.abs(destination[0]*destination[1]), 0.5) * 50;
+
+                        var increment = new Array(
+                            ((-1 * clickcoordinates[0]) + destination[0]) / 2 / arcSegments,
+                            ((-1 * clickcoordinates[1]) + destination[1]) / 2 / arcSegments
+                        );
+                        console.log(increment);
+
+                        line = [];
+                        for (var l = 0; l <= arcSegments; l++) {
+                            var waypoint = new Array(
+                                (clickcoordinates[0] + (increment[0] * l * 2)),
+                                (clickcoordinates[1] + (increment[1] * l * 2))
+                            );
+                            var waypointElevation = Math.sin(Math.PI * l / arcSegments) * maxElevation;
+                            waypoint.push(waypointElevation);
+                            line.push(waypoint);
+                        }
+                        lines.push(line);
+                    }
+                    console.log('lineGeometries of the lines: ', lines);
+
+                    // Add 3D layer
+                    map.addLayer({
+                        id: "branches" + DataFeature[0].OrganizationName + "",
+                        type: 'custom',
+                        renderingMode: '3d',
+                        onAdd: function(map, mbxContext) {
+                            //instantiate threebox
+                            window.tb = new Threebox(
+                                map, 
+                                mbxContext,
+                                { defaultLights: true }
+                            );
+                            for (line of lines) {
+                                var lineOptions = {
+                                    geometry: line,
+                                    color: (line[1][1]/180) * 0xffffff,
+                                    width: Math.random() + 2
+                                }
+                                let lineMesh = tb.line(lineOptions);
+                                tb.add(lineMesh);
+                            }
+                        },
+                        render: function(gl, matrix) {
+                            tb.update();
+                        }
+                    });
+                    //
                 }
                 else if (CensusTract.length > 0) {
                     console.log("entered second");
@@ -1788,7 +1885,12 @@
             });
 
 
-            //3d graphs - topology
+
+            /*
+                ** TEMPLATE **
+                ** For Documentation
+                ** Keep this template commented out
+                ** Copy and paste relevant lines, change as necessary, for your needs
             //
             // randomly generate some line arcs (not essential for understanding this demo)
             var lines = [];
@@ -1850,6 +1952,7 @@
                     }
                 });
             });
+            */
         </script>
     </body>
 </html>
