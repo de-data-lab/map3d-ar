@@ -1413,6 +1413,10 @@
                     //
                     // Threebox
                     // Creating 'spider lines' for the resource with many locations
+                    if(typeof map.getLayer('branches') !== 'undefined') {
+                        map.removeLayer('branches');
+                    }
+
                     var lines = [];
                     var arcSegments = 30;
 
@@ -1447,7 +1451,7 @@
 
                     // Add 3D layer
                     map.addLayer({
-                        id: "branches" + DataFeature[0].OrganizationName + "",
+                        id: "branches",
                         type: 'custom',
                         renderingMode: '3d',
                         onAdd: function(map, mbxContext) {
@@ -1460,8 +1464,8 @@
                             for (line of lines) {
                                 var lineOptions = {
                                     geometry: line,
-                                    color: (line[1][1]/180) * 0xffffff,
-                                    width: Math.random() + 2
+                                    color: function(line) { 0xffffff },
+                                    width: Math.random() + 5
                                 }
                                 let lineMesh = tb.line(lineOptions);
                                 tb.add(lineMesh);
