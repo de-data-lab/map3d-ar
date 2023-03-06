@@ -32,14 +32,7 @@
         <script src="../node_modules/threebox-plugin/dist/threebox.js" type="text/javascript"></script>
 
         <!-- Parser.js -->
-        <script src="./js/parser.js"></script>
-
-        <!-- D3.js  -->
-        <script src="https://d3js.org/d3.v3.min.js"></script>
-        <script src="https://d3js.org/d3-collection.v1.min.js"></script>
-        <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
-        <script src="https://d3js.org/d3-dsv.v1.min.js"></script>
-        <script src="https://d3js.org/d3-request.v1.min.js"></script>
+        <script src="../js/parser.js"></script>
 
         <style type="text/css">
             @font-face {
@@ -333,7 +326,9 @@
     </head>
     <body>
         <!-- HTML -->
-        
+        <canvas id="heightmap" width="256" height="256" style="position: absolute;"></canvas>
+        <canvas id="heightgrd" width="64" height="256" style="position: absolute; left: 257px;"></canvas>
+
         <!-- Flexbox -->
         <div class="wrapper">
             <div id="map"></div>
@@ -480,12 +475,102 @@
         </div>
 
         <!-- JavaScript -->
-        <script>
-            const THREE = window.THREE;
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@0.146.0/build/three.module.js",
+                    "three/addons/": "https://unpkg.com/three@0.146.0/examples/jsm/"
+                }
+            }
+        </script>
+        <script type="module">
+            import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
+            const THREE = window.THREE;
             console.log(
-                Parser.evaluate('6 * x', { x: 7 })
+                Parser.evaluate('x ^ x', { x: 3 })
             );
+            
+
+            var heatVertex = `
+                uniform sampler2D heightMap;
+                uniform float heightRatio;
+                uniform float heightBias;
+                varying vec2 vUv;
+                varying float hValue;
+                void main() {
+                    vUv = uv;
+                    vec3 pos = position;
+                    hValue = texture2D(heightMap, vUv).r;
+                    pos.y = hValue * heightRatio;
+                    pos.y += heightBias;
+
+                    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+
+                    gl_PointSize = 30. * (1. / - mvPosition.z);
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `;
+            var heatFragment = `
+                uniform sampler2D gradientMap;
+                varying float hValue;
+                void main() {
+                    float v = clamp(hValue, 0., 1.);
+                    vec3 col = texture2D(gradientMap, vec2(0, v)).rgb;
+                    gl_FragColor = vec4(col, 1.);
+                }
+            `;
+            var canvasH = document.getElementById("heightmap");
+            canvasH.addEventListener("click", () => {
+                createHeightMap();
+            }, false);
+            var heightMap = new THREE.CanvasTexture(canvasH);
+            var ctxH = canvasH.getContext("2d");
+
+            createHeightMap();
+            function createHeightMap() {
+                console.log("height");
+                ctxH.fillStyle = "black";
+                ctxH.fillRect(0, 0, 256, 256);
+                for(let i = 0; i < 100; i++) {
+                    var x = Math.floor(Math.random() * 255);
+                    var y = Math.floor(Math.random() * 255);
+                    var radius = 50;
+                    var grd = ctxH.createRadialGradient(x, y, 1, x, y, radius);
+                    var h8 = Math.floor(Math.random() * 255);
+                    grd.addColorStop(0, "rgb("+ h8 + "," + h8 + "," + h8 + ")");
+                    grd.addColorStop(1, "transparent");
+                    ctxH.fillStyle = grd;
+                    ctxH.fillRect(0, 0, 256, 256);
+                }
+                heightMap.needsUpdate = true;
+            }
+
+            var canvasG = document.getElementById("heightgrd");
+            canvasG.addEventListener("click", ()=> {
+                createGradMap();
+            }, false);
+            var gradientMap = new THREE.CanvasTexture(canvasG);
+            var ctxG = canvasG.getContext("2d");
+
+            createGradMap();
+            function createGradMap() {
+                console.log("gradient");
+                let grd = ctxG.createLinearGradient(0, 255, 0, 0);
+                var colorAmount = 3 + THREE.MathUtils.randInt(0, 3);
+                var colorStep = 1. / colorAmount;
+                for (let i = 0; i <= colorAmount; i++ ){
+                    let r = THREE.MathUtils.randInt(0, 255);
+                    let g = THREE.MathUtils.randInt(0, 255);
+                    let b = THREE.MathUtils.randInt(0, 255);
+                    grd.addColorStop(colorStep * i, 'rgb(' + r + ',' + g + ',' + b + ')');
+                }
+                ctxG.fillStyle = grd;
+                ctxG.fillRect(0, 0, 64, 256);
+                gradientMap.needsUpdate = true;
+            }
+
+
 
             const params = {
                 accessToken: 'pk.eyJ1IjoibGlsbXJob3VzZSIsImEiOiJja3d1cm5nOHQxdDlrMnZueWY4dzlrbHY2In0.g14m2o2rHvNYYdDSsjwmqQ',
@@ -510,6 +595,9 @@
                 scrollZoom: true,
                 antialias: true
             };
+            var heatmapSidelength = 100;
+            var heatmapDepth = 500;
+            //
             var otherbranches = [];
             var clickcoordinates = [];
             var AllDataFeatures = [];
@@ -703,7 +791,7 @@
             const map = new mapboxgl.Map({
                 container: 'map',
                 style: params.styles.purplelight,
-                projection: params.projections.mercator,
+                projection: params.projections.globe,
                 center: params.center,
                 hash: params.hash,
                 pitch: params.pitch,
@@ -821,6 +909,10 @@
                     type: 'vector',
                     url: 'mapbox://lilmrhouse.dmq52p9v'
                 });
+                map.addSource('dartbus', {
+                    type: 'vector',
+                    url: 'mapbox://lilmrhouse.24l5hfz5'
+                })
                 map.addSource('dots', {
                     type: 'vector',
                     url: 'mapbox://lilmrhouse.3atow0lv'
@@ -909,6 +1001,22 @@
                     'paint': {
                         'fill-opacity': 0
                     }  
+                });
+
+                // Layer for DART bus routes
+                map.addLayer({
+                    'id': 'dart-bus-routes',
+                    'type': 'circle',
+                    'source': 'dartbus',
+                    'source-layer': 'DART_Bus_SchedulesRegexed-cn5ob7',
+                    'layout': {
+                        'visibility': 'visible'
+                    },
+                    'paint': {
+                        'circle-opacity': 0,
+                        'circle-color': '#100826',
+                        'circle-radius': 12
+                    }
                 });
                 
                 // Layer for 3D buildings
@@ -1346,6 +1454,8 @@
             // Click functionality
             map.on('click', function(e) {
                 console.log(e);
+                console.log(AllDataFeatures);
+                console.log(JSON.stringify(AllDataFeatures));
                 //
                 //setting access for variables from data layers
                 const CensusTract = map.queryRenderedFeatures(e.point, {
@@ -1364,6 +1474,8 @@
                 //outputting resource data in a popup
                 if (DataFeature.length > 0 && CensusTract.length > 0) {
                     console.log("entered first");
+                    console.log(DataFeature[0].OrganizationName);
+                    //
                     clickcoordinates = [ DataFeature[0].Longitude, DataFeature[0].Latitude ];
                     while (Math.abs(e.lngLat.lng - clickcoordinates[0]) > 180) {
                         clickcoordinates[0] += e.lngLat.lng > clickcoordinates[0] ? 360 : -360;
@@ -1372,6 +1484,7 @@
                     .setLngLat(clickcoordinates)
                     .setHTML(
                         `<b>Resource for Families/Children:</b><br>` + DataFeature[0].OrganizationName + `<br><br>` +
+                        `<b>Resource Phone:</b><br>` + DataFeature[0].PhoneNumbers + `<br><br>` +
                         `<b>Resource Location:</b><br>` + DataFeature[0].Addresses + `<br><br>` +
                         `<b>Census Tract: ` + CensusTract[0].NAME + `</b><br>` +
                         `<br>` +
@@ -1390,13 +1503,25 @@
                             coordinates: [ DataFeature[0].Longitude, DataFeature[0].Latitude ]
                         }
                     }];
+                    console.log(DataFeature[0].OrganizationName);
+                    console.log(AllDataFeatures.length);
                     for (var q = 0; q < AllDataFeatures.length; q++){
                         //
                         console.log("entered loop");
+                        console.log(q + ":: " + 
+                                    (AllDataFeatures[q].OrganizationName) + ": " +
+                                    (DataFeature[0].OrganizationName === AllDataFeatures[q].OrganizationName) + " | " + 
+                                    (DataFeature[0].Latitude !== AllDataFeatures[q].Latitude) + " | " + 
+                                    (DataFeature[0].Longitude !== AllDataFeatures[q].Longitude));
                         //
                         // iterate through all the data points on the map
                         // and for each one with the same name, push its geocoordinates to the array
-                        if (DataFeature[0].OrganizationName == AllDataFeatures[q].OrganizationName) {
+                        if (DataFeature[0].OrganizationName === AllDataFeatures[q].OrganizationName
+                            &&
+                            DataFeature[0].Latitude !== AllDataFeatures[q].Latitude
+                            &&
+                            DataFeature[0].Longitude !== AllDataFeatures[q].Longitude) {
+                            //
                             var match = {
                                 type: "FeatureCollection",
                                 geometry: {
@@ -1408,6 +1533,7 @@
                             console.log(JSON.stringify(otherbranches));
                             otherbranches.push(match);
                         }
+                        else { console.log("No matches found - No local branches"); }
                     }
                     console.log(otherbranches);
                     //
@@ -1427,7 +1553,7 @@
                         var destination = otherbranches[i].geometry.coordinates;
                         console.log(destination);
 
-                        var maxElevation = Math.pow(Math.abs(destination[0]*destination[1]), 0.5) * 15;
+                        var maxElevation = Math.pow(Math.abs(destination[0]*destination[1]), 0.5) * 9;
 
                         var increment = new Array(
                             ((-1 * clickcoordinates[0]) + destination[0]) / 2 / arcSegments,
@@ -1475,9 +1601,13 @@
                             tb.update();
                         }
                     });
-                    //
                 }
                 else if (CensusTract.length > 0) {
+                    // Eliminating 'spider lines' for the resource with many locations
+                    if(typeof map.getLayer('branches') !== 'undefined') {
+                        map.removeLayer('branches');
+                    }
+                    //
                     console.log("entered second");
                     new mapboxgl.Popup()
                     .setLngLat(e.lngLat)
@@ -1888,6 +2018,86 @@
                 map.addLayer(customLayer, 'waterway-label');
             });
 
+            
+
+            //
+            // Add topology for concentration of resources
+            map.on('style.load', function () {
+                map.addLayer({
+                    id: 'topology',
+                    type: 'custom',
+                    renderingMode: '3d',
+                    onAdd: function(map, mbxContext) {
+                        //instantiate threebox
+                        window.tb = new Threebox(
+                            map, 
+                            mbxContext,
+                            { defaultLights: true }
+                        );
+                        this.camera = new THREE.Camera();
+                        this.scene = new THREE.Scene();
+
+                        // create two three.js lights to illuminate the model
+                        var directionalLight = new THREE.DirectionalLight(0xffffff);
+                        directionalLight.position.set(0, -70, 100).normalize();
+                        this.scene.add(directionalLight);
+
+                        var directionalLight2 = new THREE.DirectionalLight(0xffffff);
+                        directionalLight2.position.set(0, 70, 100).normalize();
+                        this.scene.add(directionalLight2);
+
+
+                        var zFuncText = "x^2 - y^2";
+                        var zFunc = Parser.parse(zFuncText).toJSFunction( ['x','y'] );
+                        var meshFunction;
+                        var segments = 20, 
+                            xMin = -10, xMax = 10, xRange = xMax - xMin,
+                            yMin = -10, yMax = 10, yRange = yMax - yMin,
+                            zMin = -10, zMax = 10, zRange = zMax - zMin;
+
+                        var wireframeMaterial = new THREE.MeshBasicMaterial( { color: 0x000088, wireframe: true, side:THREE.DoubleSide } ); 
+                        var graphGeometry;
+                        var graphMesh;
+
+                        xRange = xMax - xMin;
+	                    yRange = yMax - yMin;
+                        zFunc = Parser.parse(zFuncText).toJSFunction( ['x','y'] );
+                        meshFunction = function(x, y) 
+                        {
+                            x = xRange * x + xMin;
+                            y = yRange * y + yMin;
+                            var z = zFunc(x,y); //= Math.cos(x) * Math.sqrt(y);
+                            if ( isNaN(z) )
+                                return new THREE.Vector3(0,0,0); // TODO: better fix
+                            else
+                                return new THREE.Vector3(x, y, z);
+                        };
+                        graphGeometry = new THREE.ParametricGeometry( meshFunction, segments, segments, true );
+                        if (graphMesh) {
+                            this.scene.remove( graphMesh );
+                        }
+                        graphMesh = new THREE.Mesh( graphGeometry, wireframeMaterial );
+                        graphMesh.doubleSided = true;
+                        this.scene.add(graphMesh);
+
+                        /*
+                        for (line of lines) {
+                            var lineOptions = {
+                                geometry: line,
+                                color: (line[1][1]/180) * 0xffffff,
+                                width: Math.random() + 12
+                            }
+                            let lineMesh = tb.line(lineOptions);
+                            tb.add(lineMesh);
+                        }
+                        */
+                    },
+                    render: function(gl, matrix) {
+                        tb.update();
+                    }
+                });
+            });
+
 
 
             /*
@@ -1957,6 +2167,62 @@
                 });
             });
             */
+
+
+            // Use Turf.js to create a BBox of the area that is actively filled with content
+            /*
+            var lineCornerToCorner = turf.lineString([[],[],[]]);
+            var bboxCornerToCorner = turf.bbox(lineCornerToCorner);
+            var bboxContentPolygon = turf.bboxPolygon(bboxCornerToCorner);
+            */
+
+            
+            // Add 3D layer
+            map.on('style.load', function() {
+                map.addLayer({
+                    id: 'peaks',
+                    type: 'custom',
+                    renderingMode: '3d',
+                    onAdd: function(map, mbxContext) {
+                        //instantiate threebox
+                        window.tb = new Threebox(
+                            map,
+                            mbxContext,
+                            { defaultLights: true } 
+                        );
+                        //implement your objects/meshes in threebox
+                        var planeGeometry = new THREE.PlaneGeometry(heatmapSidelength, 
+                                                                    heatmapSidelength, 
+                                                                    heatmapSidelength, heatmapDepth);
+                        planeGeometry.rotateX(-Math.PI * 0.5);
+
+                        var heatMesh = new THREE.Mesh(planeGeometry, new THREE.ShaderMaterial({
+                            uniforms: {
+                                heightMap: {value: heightMap},
+                                heightRatio: {value: 10},
+                                heightBias: {value: 0},
+                                gradientMap: {value: gradientMap},
+                            },
+                            vertexShader: heatVertex,
+                            fragmentShader: heatFragment,
+                            side: THREE.DoubleSide,
+                        }));
+
+                        //GUI
+                        var gui = new GUI();
+                        gui.add(heatMesh.material.uniforms.heightRatio, "value", 1, 15).name("heightRatio");
+                        gui.add(heatMesh.material.uniforms.heightBias, "value", 0, 10).name("heightBias");
+
+                        var heatMapObj = tb.Object3D({ obj: heatMesh })
+                            .setCoords([-75.55143,39.73657]);
+                        heatMapObj.rotateX(Math.PI * 0.5);
+                        tb.add(heatMapObj)
+                    },
+                    render: function(gl, matrix) {
+                        tb.update();
+                    }
+                })
+            })
         </script>
     </body>
 </html>
