@@ -29,13 +29,6 @@
         <script src="https://unpkg.com/three@0.126.0/build/three.min.js"></script>
         <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
 
-        <!-- D3.js  -->
-        <script src="https://d3js.org/d3.v3.min.js"></script>
-        <script src="https://d3js.org/d3-collection.v1.min.js"></script>
-        <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
-        <script src="https://d3js.org/d3-dsv.v1.min.js"></script>
-        <script src="https://d3js.org/d3-request.v1.min.js"></script>
-
         <style type="text/css">
             @font-face {
                 font-family: 'Roboto Mono';
@@ -248,10 +241,10 @@
             #satellite {
                 background-color: #00b0e1;
             }
-            #extruded-buildings, #resources, #youarehere {
+            #extruded-buildings, #resources, #landmark-icons, #youarehere {
                 background-color: #4600ff;
             }
-            #satellite, #extruded-buildings, #resources, #youarehere {
+            #satellite, #extruded-buildings, #resources, #landmark-icons, #youarehere {
                 color: #fff;
                 margin: 10px 10px 10px 10px;
                 border-radius: 0.5em;
@@ -345,6 +338,7 @@
                 <h3 class="faded">On/Off</h3>
                 <div id="resources" class="on faded">Hide Resources</div>
                 <div id="extruded-buildings" class="on faded">Hide 3D Buildings</div>
+                <div id="landmark-icons" class="on faded">Hide Landmark Icons</div>
                 <div id="satellite" class="faded">Add satellite</div>
 
                 <!-- Categories list -->
@@ -485,7 +479,7 @@
                 },
                 center: [
                     -75.551,
-                    39.738
+                    38.938 //39.738
                 ],
                 projections: {
                     mercator: 'mercator',
@@ -493,7 +487,7 @@
                 },
                 hash: false,
                 pitch: 60,
-                zoom: 16.09,
+                zoom: 9, //16.09,
                 minZoom: 0,
                 maxZoom: 50,
                 scrollZoom: true
@@ -508,6 +502,10 @@
                 Recreational: [],  
                 Transportation: [], 
                 Other: []
+            };
+            var DataGeojson = {
+                type: "FeatureCollection",
+                features: [],
             };
             var CategoryColors = {
                 FoodNutrition: "#A8E10C",       //A8E10C - Kelly Green
@@ -527,6 +525,7 @@
             const satelliteSwitch = document.getElementById('satellite');
             const buildingsSwitch = document.getElementById('extruded-buildings');
             const resourcesSwitch = document.getElementById('resources');
+            const landmarkSwitch = document.getElementById('landmark-icons');
 
             const TechImpactLocations = {
                 type: 'FeatureCollection',
@@ -589,11 +588,10 @@
                     ]
                 };
                 map.getSource('mygeodata').setData(mygeodata);
-                /*
                 map.flyTo({
                     center: mygeo,
                     essential: true
-                }); */
+                });
             }
             function error(err) {
                 console.warn(`ERROR(${err.code}): ${err.message}`);
@@ -603,6 +601,10 @@
                     console.log("Geolocation in navigator");
                     navigator.geolocation.getCurrentPosition(success, error, options);
                 } else { console.log("Geolocation not available!"); }
+            }
+
+            function setMyGeoJSONSource() {
+                map.getSource('dots-geojson').setData(DataGeojson);
             }
 
 
@@ -616,8 +618,8 @@
             resourcesSwitch.onclick = () => {
                 if (resourcesSwitch.classList.contains("on")) {
                     map.setLayoutProperty('weic-features', 'visibility', 'none');
-                    map.setLayoutProperty('heat-glow-base', 'visibility', 'none');
-                    map.setLayoutProperty('heat-glow-mid', 'visibility', 'none');
+                    //map.setLayoutProperty('heat-glow-base', 'visibility', 'none');
+                    //map.setLayoutProperty('heat-glow-mid', 'visibility', 'none');
                     resourcesSwitch.classList.toggle('on');
                     resourcesSwitch.style.backgroundColor = "#00b0e1";
                     resourcesSwitch.style.transition = "all 300ms ease-in";
@@ -625,8 +627,8 @@
                 }
                 else {
                     map.setLayoutProperty('weic-features', 'visibility', 'visible');
-                    map.setLayoutProperty('heat-glow-base', 'visibility', 'visible');
-                    map.setLayoutProperty('heat-glow-mid', 'visibility', 'visible');
+                    //map.setLayoutProperty('heat-glow-base', 'visibility', 'visible');
+                    //map.setLayoutProperty('heat-glow-mid', 'visibility', 'visible');
                     resourcesSwitch.classList.toggle('on');
                     resourcesSwitch.style.backgroundColor = "#4600ff";
                     resourcesSwitch.style.transition = "all 300ms ease-out";
@@ -665,6 +667,31 @@
                     satelliteSwitch.innerHTML = "Hide satellite";
                 }
             }
+            landmarkSwitch.onclick = () => {
+                if (landmarkSwitch.classList.contains("on")) {
+                    map.setLayoutProperty('mygeopoint', 'visibility', 'none');
+                    let markers = document.getElementsByClassName("tilogo");
+                    for (let i = 0; i < markers.length; i++) {
+                        markers[i].style.visibility = "hidden";
+                    }
+                    landmarkSwitch.classList.toggle('on');
+                    landmarkSwitch.style.backgroundColor = "#00b0e1";
+                    landmarkSwitch.style.transition = "all 300ms ease-in";
+                    landmarkSwitch.innerHTML = "Show Landmark Icons";
+                }
+                else {
+                    map.setLayoutProperty('mygeopoint', 'visibility', 'visible');
+                    let markers = document.getElementsByClassName("tilogo");
+                    for (let i = 0; i < markers.length; i++) {
+                        markers[i].style.visibility = "visible";
+                    }
+                    landmarkSwitch.classList.toggle('on');
+                    landmarkSwitch.style.backgroundColor = "#4600ff";
+                    landmarkSwitch.style.transition = "all 300ms ease-out";
+                    landmarkSwitch.innerHTML = "Hide Landmark Icons";
+                }
+            }
+
 
             
             // Add the map
@@ -758,6 +785,15 @@
                     }
                 });
 
+                //Source for GeoJSON resources
+                map.addSource('dots-geojson', {
+                    type: 'geojson',
+                    data: DataGeojson,
+                    cluster: true,
+                    clusterMaxZoom: 14,
+                    clusterRadius: 80
+                });
+
                 //Sources for data-driven content
                 map.addSource('building', {
                     type: 'vector',
@@ -774,6 +810,88 @@
                 
 
                 //Layers
+                //Layers for circle clusters
+                map.addLayer({
+                    id: 'clusters',
+                    type: 'circle',
+                    source: 'dots-geojson',
+                    filter: ['has', 'point_count'],
+                    paint: {
+                        'circle-color': [
+                            'step',
+                            ['get', 'point_count'],
+                            '#FFFFFF',  //white
+                            6.67,
+                            '#B1F2FF',   //light blue
+                            13.33,
+                            '#8AECFF',
+                            20,
+                            '#51bbd6',  //blue
+                            40,
+                            '#86CCB5',  //blue-green
+                            100,
+                            '#BBDE95',  //yellow-green
+                            150,
+                            '#F1F075',  //yellow
+                            200,
+                            '#F1BE93', //yellow-orange
+                            250,
+                            '#F28CB1', //pink-orange
+                            300,
+                            '#F25ACF', //pink
+                        ],
+                        'circle-radius': [
+                            'step',
+                            ['get', 'point_count'],
+                            9,
+                            6.67,
+                            12,
+                            13.33,
+                            15,
+                            20,     //point count
+                            20,
+                            40,     //point count
+                            30,
+                            100,    //point count
+                            40,
+                            150,    //point count
+                            45,
+                            200,    //point count
+                            50,
+                            250,    //point count
+                            55,
+                            300,    //point count
+                            60
+                        ]
+                    }
+                });
+                //Layer for cluster count
+                map.addLayer({
+                    id: 'cluster-count',
+                    type: 'symbol',
+                    source: 'dots-geojson',
+                    filter: ['has', 'point_count'],
+                    layout: {
+                        'text-field': ['get', 'point_count'],
+                        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                        'text-size': 12
+                    }
+                });
+                //Layer for unclustered points
+                map.addLayer({
+                    id: 'unclustered-point',
+                    type: 'circle',
+                    source: 'dots-geojson',
+                    filter: ['!', ['has', 'point_count']],
+                    paint: {
+                        'circle-color': '#ffffff',
+                        'circle-radius': 4,
+                        'circle-stroke-width': 1,
+                        'circle-stroke-color': '#11b4da'
+                    }
+                });
+
+
                 //Layers for routes
                 map.addLayer({
                     id: 'theRoute',
@@ -831,6 +949,9 @@
                         'visibility': 'none'
                     }
                 });
+                map.moveLayer('satellite', 'mygeopoint');
+                map.moveLayer('satellite', 'clusters');
+
                 map.addLayer({
                     'id': 'census-tract-fills',
                     'type': 'fill',
@@ -887,6 +1008,7 @@
                     }
                 });
 
+                /*
                 // Layer for pseudo-heatmap glow, base
                 map.addLayer({
                     'id': 'heat-glow-base',
@@ -1126,6 +1248,7 @@
                         'circle-stroke-opacity': 1
                     }
                 });
+                */
 
                 // Layer for WEIC resources
                 map.addLayer({
@@ -1133,19 +1256,6 @@
                     'type': 'circle',
                     'source': 'dots',
                     'source-layer': 'alldata_geolocated-4rfe3o',
-                    'filter': [
-                        "all",
-                        [
-                            "match",
-                            [
-                                "get",
-                                "OrganizationName"
-                            ],
-                            ["NA"],
-                            false,
-                            true
-                        ]
-                    ],
                     'layout': {
                         'visibility': 'visible'
                     },
@@ -1262,7 +1372,16 @@
                     (features) => features.properties
                 );
                 categorizeDataFeatures(AllDataFeatures);
+                console.log(AllDataFeatures.length);
                 console.log(Categories);
+
+                const SourceDataFeatures = map.querySourceFeatures('dots',
+                {
+                    sourceLayer: 'alldata_geolocated-4rfe3o',
+                });
+                convertToGeojsonDataFeatures(SourceDataFeatures);
+                console.log(DataGeojson);
+                setMyGeoJSONSource();
 
                 setMyGeolocation();
 
@@ -1272,11 +1391,35 @@
                     features: dotsdata
                 };
                 resource = turf.buffer(clearances, 0.25, { units: 'kilometers' });
-                console.log(clearances.features[0]._geometry);
-                console.log(resource);
+                //console.log(clearances.features[0]._geometry);
+                //console.log(resource);
             });
 
-            // Click functionality
+            // Click functionality for clusters
+            map.on('click', 'clusters', (e) => {
+                const clusters = map.queryRenderedFeatures(e.point, {
+                    layers: ['clusters']
+                });
+                const clusterId = clusters[0].properties.cluster_id;
+                map.getSource('dots-geojson').getClusterExpansionZoom(
+                    clusterId,
+                    (err, zoom) => {
+                        if (err) return;
+                        map.easeTo({
+                            center: clusters[0].geometry.coordinates,
+                            zoom: zoom
+                        });
+                    }
+                );
+            });
+            map.on('mouseenter', 'clusters', () => {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+            map.on('mouseleave', 'clusters', () => {
+                map.getCanvas().style.cursor = '';
+            });
+
+            // General Click functionality
             map.on('click', function(e) {
                 //setting access for variables from data layers
                 const CensusTract = map.queryRenderedFeatures(e.point, {
@@ -1327,7 +1470,7 @@
             });
 
             function categorizeDataFeatures(all) {
-                console.log(all);
+                console.log(all.length);
                 //
                 for (var i = 0; i < all.length; i++) {
                     if (all[i].FoodNutrition == "X") { Categories.FoodNutrition.push(all[i]); };
@@ -1342,8 +1485,6 @@
                 }
             }
             function printCategories(df) {
-                console.log(df);
-                //
                 var output = "";
                 if (df.FoodNutrition == "X") { output += "Food & Nutrition<br/>" };
                 if (df.HealthHealthcare == "X") { output += "Health & Healthcare<br/>" };
@@ -1355,6 +1496,46 @@
                 if (df.Transportation == "X") { output += "Transportation<br/>" };
                 if (df.Other == "X") { output += "Other<br>" };
                 return output;
+            }
+            function convertToGeojsonDataFeatures(json) {
+                //console.log(json);
+                //
+                console.log(json.length);
+                for (var i = 0; i < json.length; i++) {
+                    DataGeojson.features.push({
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [json[i].properties.Longitude, json[i].properties.Latitude]
+                        },
+                        "properties": {
+                            "OrganizationName": json[i].properties.OrganizationName,
+                            "Addresses": json[i].properties.Addresses,
+                            "Description": json[i].properties.Description,
+                            "PhoneNumbers": json[i].properties.PhoneNumbers,
+                            "Websites": json[i].properties.Websites,
+
+                            "FIPS": json[i].properties.FIPS,
+                            "GEOID": json[i].properties.GEOID,
+                            "county": json[i].properties.county,
+                            "state": json[i].properties.state,
+                            "censustract": json[i].properties.censustract,
+                            "blockgroup": json[i].properties.blockgroup,
+                            "block": json[i].properties.block,
+                            "matchedaddresses": json[i].properties.matchedaddresses,
+
+                            "AcademicEducational": json[i].properties.AcademicEducational,
+                            "EarlyChildhood": json[i].properties.EarlyChildhood, 
+                            "FoodNutrition": json[i].properties.FoodNutrition, 
+                            "HealthHealthcare": json[i].properties.HealthHealthcare, 
+                            "Housing": json[i].properties.Housing,
+                            "MentalHealth": json[i].properties.MentalHealth,
+                            "Recreational": json[i].properties.Recreational,  
+                            "Transportation": json[i].properties.Transportation, 
+                            "Other": json[i].properties.Other
+                        }
+                    });
+                }
             }
 
             // (De)select all resources
@@ -1382,14 +1563,14 @@
                 if (!e.target.checked) { 
                     console.log(`Now it is Unchecked`); 
                     map.setFilter('weic-features', allarray);
-                    map.setFilter('heat-glow-base', allarray);
-                    map.setFilter('heat-glow-mid', allarray);
+                    //map.setFilter('heat-glow-base', allarray);
+                    //map.setFilter('heat-glow-mid', allarray);
                 }
                 else if (e.target.checked) { 
                     console.log(`Now it is Checked`); 
                     map.setFilter('weic-features', defaultarray);
-                    map.setFilter('heat-glow-base', defaultarray);
-                    map.setFilter('heat-glow-mid', defaultarray);
+                    //map.setFilter('heat-glow-base', defaultarray);
+                    //map.setFilter('heat-glow-mid', defaultarray);
                 }
             }
 
@@ -1441,14 +1622,14 @@
                 if (!e.target.checked) { 
                     console.log("Now it is Unchecked"); 
                     map.setFilter('weic-features', filterarray);
-                    map.setFilter('heat-glow-base', filterarray);
-                    map.setFilter('heat-glow-mid', filterarray);
+                    //map.setFilter('heat-glow-base', filterarray);
+                    //map.setFilter('heat-glow-mid', filterarray);
                 }
                 else if (e.target.checked) { 
                     console.log("Now it is Checked"); 
                     map.setFilter('weic-features', defaultarray);
-                    map.setFilter('heat-glow-base', defaultarray);
-                    map.setFilter('heat-glow-mid', defaultarray);
+                    //map.setFilter('heat-glow-base', defaultarray);
+                    //map.setFilter('heat-glow-mid', defaultarray);
                 } 
             }
 
