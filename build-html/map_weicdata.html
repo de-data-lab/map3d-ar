@@ -19,7 +19,6 @@
         <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js"></script>
         <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css" type="text/css">
         
-
         <!-- Turf.js -->
         <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
         <!-- Polyline -->
@@ -28,6 +27,9 @@
         <!-- Three.js -->
         <script src="https://unpkg.com/three@0.126.0/build/three.min.js"></script>
         <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+
+        <!-- Threebox -->
+        <script src="../node_modules/threebox-plugin/dist/threebox.js" type="text/javascript"></script>
 
         <style type="text/css">
             @font-face {
@@ -507,6 +509,7 @@
                 type: "FeatureCollection",
                 features: [],
             };
+            var Cluster3DLayerStrings = [];
             var CategoryColors = {
                 FoodNutrition: "#A8E10C",       //A8E10C - Kelly Green
                 HealthHealthcare: "#FF5765",    //FF5765 - Coral
@@ -807,9 +810,79 @@
                     type: 'vector',
                     url: 'mapbox://lilmrhouse.3atow0lv'
                 });
-                
 
                 //Layers
+                //Layer for the satellite tiles
+                map.addLayer({
+                    'id': 'satellite',
+                    'source': {
+                        'type': 'raster',
+                        'url': 'mapbox://mapbox.satellite',
+                        'tileSize': 256
+                    },
+                    'type': 'raster',
+                    'layout': {
+                        'visibility': 'none'
+                    }
+                });
+
+                //Layer for the census tracts with census data
+                map.addLayer({
+                    'id': 'census-tract-fills',
+                    'type': 'fill',
+                    'source': 'census-tract-shapefile',
+                    'source-layer': 'tl_2020_10_tract-9uewme',
+                    'layout': {
+                        'visibility': 'visible'
+                    },
+                    'paint': {
+                        'fill-opacity': 0
+                    }  
+                });
+
+                // Layer for 3D buildings
+                map.addLayer({
+                    'id': 'extruded-buildings',
+                    'type': 'fill-extrusion',
+                    'source': 'building',
+                    'source-layer': 'building',
+                    'layout': {
+                        'visibility': 'visible'
+                    },
+                    'paint': {
+                        'fill-extrusion-height': [
+                            "interpolate",
+                            ["linear"],
+                            ["get", "height"],
+                            0,
+                            0,
+                            500,
+                            [
+                                "case",
+                                [
+                                "==",
+                                ["get", "height"],
+                                0
+                                ],
+                                500,
+                                500
+                            ]
+                        ],
+                        'fill-extrusion-color': [
+                            "interpolate",
+                            ["linear"],
+                            ["get", "height"],
+                            0,
+                            "hsl(257, 88%, 40%)",
+                            150,
+                            "hsl(197, 85%, 60%)",
+                            300,
+                            "hsl(163, 83%, 58%)"
+                        ], //f7b6a6
+                        'fill-extrusion-opacity': 0.6
+                    }
+                });
+                
                 //Layers for circle clusters
                 map.addLayer({
                     id: 'clusters',
@@ -935,78 +1008,7 @@
                         'text-translate': [0, 45]
                     }
                 });
-
-                //Layers
-                map.addLayer({
-                    'id': 'satellite',
-                    'source': {
-                        'type': 'raster',
-                        'url': 'mapbox://mapbox.satellite',
-                        'tileSize': 256
-                    },
-                    'type': 'raster',
-                    'layout': {
-                        'visibility': 'none'
-                    }
-                });
-                map.moveLayer('satellite', 'mygeopoint');
-                map.moveLayer('satellite', 'clusters');
-
-                map.addLayer({
-                    'id': 'census-tract-fills',
-                    'type': 'fill',
-                    'source': 'census-tract-shapefile',
-                    'source-layer': 'tl_2020_10_tract-9uewme',
-                    'layout': {
-                        'visibility': 'visible'
-                    },
-                    'paint': {
-                        'fill-opacity': 0
-                    }  
-                });
                 
-                // Layer for 3D buildings
-                map.addLayer({
-                    'id': 'extruded-buildings',
-                    'type': 'fill-extrusion',
-                    'source': 'building',
-                    'source-layer': 'building',
-                    'layout': {
-                        'visibility': 'visible'
-                    },
-                    'paint': {
-                        'fill-extrusion-height': [
-                            "interpolate",
-                            ["linear"],
-                            ["get", "height"],
-                            0,
-                            0,
-                            500,
-                            [
-                                "case",
-                                [
-                                "==",
-                                ["get", "height"],
-                                0
-                                ],
-                                500,
-                                500
-                            ]
-                        ],
-                        'fill-extrusion-color': [
-                            "interpolate",
-                            ["linear"],
-                            ["get", "height"],
-                            0,
-                            "hsl(257, 88%, 40%)",
-                            150,
-                            "hsl(197, 85%, 60%)",
-                            300,
-                            "hsl(163, 83%, 58%)"
-                        ], //f7b6a6
-                        'fill-extrusion-opacity': 0.6
-                    }
-                });
 
                 /*
                 // Layer for pseudo-heatmap glow, base
@@ -1368,56 +1370,133 @@
 
             // Collect all loaded resources into an object
             map.once('idle', () => {
+                //Getting all the WEIC resource points on the map and sorting by resource type (Health, Education, etc.)
                 const AllDataFeatures = map.queryRenderedFeatures({layers: ['weic-features']}).map(
                     (features) => features.properties
                 );
                 categorizeDataFeatures(AllDataFeatures);
-                console.log(AllDataFeatures.length);
-                console.log(Categories);
 
+                //Getting all the WEIC resource points from the original data and convertin to GeoJSON
                 const SourceDataFeatures = map.querySourceFeatures('dots',
                 {
                     sourceLayer: 'alldata_geolocated-4rfe3o',
                 });
                 convertToGeojsonDataFeatures(SourceDataFeatures);
-                console.log(DataGeojson);
                 setMyGeoJSONSource();
 
                 setMyGeolocation();
 
+                //Routes
                 dotsdata = map.queryRenderedFeatures({layers: ['weic-features']});
                 clearances = {
                     type: 'FeatureCollection',
                     features: dotsdata
                 };
                 resource = turf.buffer(clearances, 0.25, { units: 'kilometers' });
-                //console.log(clearances.features[0]._geometry);
-                //console.log(resource);
             });
 
-            // Click functionality for clusters
-            map.on('click', 'clusters', (e) => {
-                const clusters = map.queryRenderedFeatures(e.point, {
-                    layers: ['clusters']
-                });
-                const clusterId = clusters[0].properties.cluster_id;
-                map.getSource('dots-geojson').getClusterExpansionZoom(
-                    clusterId,
-                    (err, zoom) => {
-                        if (err) return;
-                        map.easeTo({
-                            center: clusters[0].geometry.coordinates,
-                            zoom: zoom
-                        });
+
+            map.on('moveend', function(e) {
+
+                //remove the Threebox instantiator layer, if it exists
+                //to start from a blank slate
+                if (typeof map.getLayer('threebox-instantiator') !== 'undefined') {
+                    map.removeLayer('threebox-instantiator');
+                }
+                //blank layer to instantiate window.tb (Threebox)
+                map.addLayer({
+                    id: 'threebox-instantiator',
+                    type: 'custom',
+                    renderingMode: '3d',
+                    onAdd: function(map, mbxContext) {
+                        //instantiate threebox
+                        window.tb = new Threebox(
+                            map,
+                            mbxContext,
+                            {
+                                defaultLights: true,
+                                enableSelectingObjects: true,
+                                enableDraggingObjects: true,
+                                enableTooltips: true,
+                                enableHelpingTooltips: true
+                            }
+                        );
+                    },
+                    render: function(gl, matrix) {
+                        tb.update();
                     }
-                );
+                });
+
+
+                //Clusters
+                var clusters = map.queryRenderedFeatures({ layers: ['clusters'] });
+                console.log(clusters);
+
+
+                //Start the loop to create a clustertower 3D object for each cluster
+                console.log("Starting loop");
+                for(var i = 0; i < clusters.length / 2; i++) {
+                    console.log(clusters[i].properties.point_count);
+                    //
+                    var thisid = clusters[i].id;
+                    var thisradius = clusters[i].layer.paint['circle-radius'] / 10;
+
+                    let _r = clusters[i].layer.paint['circle-color'].r;
+                    let _g = clusters[i].layer.paint['circle-color'].g;
+                    let _b = clusters[i].layer.paint['circle-color'].b;
+                    var thiscolor = new THREE.Color(_r, _g, _b);
+
+                    var origin = [clusters[i].geometry.coordinates[0], clusters[i].geometry.coordinates[1], 0];
+                    var lineGeometry = [];
+                    for (var l = 0; l < 200; l++) {
+                        var delta = [
+                            Math.sin(l/5) * l/40,
+                            Math.cos(l/5) * l/40,
+                            l/10
+                        ];
+                        var newCoordinates = origin.map(function(d,i) {
+                            return d + delta[i]
+                        });
+                        lineGeometry.push(newCoordinates);
+                    }
+
+                    //Threebox - create cluster-based elevations
+                    let idstring = ["clustertowers-", thisid].join('');
+
+                    if(typeof map.getLayer(idstring) !== 'undefined') {
+                        map.removeLayer(idstring);
+                    }
+                    
+                    var addableLayer = {
+                        id: idstring,
+                        type: 'custom',
+                        renderingMode: '3d',
+                        onAdd: function(map, mbxContext) {
+                            //Threebox is already instantiated
+                            var tubeOptions = {
+                                geometry: lineGeometry,
+                                radius: thisradius,
+                                sides: 6,
+                                material: 'MeshPhysicalMaterial',
+                                color: thiscolor,
+                                anchor: 'center',
+                                side: THREE.DoubleSide
+                            }
+                            //instantiate the towers as cylinders
+                            let tube = tb.tube(tubeOptions)
+                                .setCoords(
+                                    [clusters[i].geometry.coordinates[0], clusters[i].geometry.coordinates[1], 1]
+                                );
+                            tb.add(tube);
+                        },
+                        render: function(gl, matrix) {
+                            tb.update();
+                        }
+                    }
+                    map.addLayer(addableLayer);
+                }
             });
-            map.on('mouseenter', 'clusters', () => {
-                map.getCanvas().style.cursor = 'pointer';
-            });
-            map.on('mouseleave', 'clusters', () => {
-                map.getCanvas().style.cursor = '';
-            });
+
 
             // General Click functionality
             map.on('click', function(e) {
@@ -1432,6 +1511,7 @@
                 }).map(
                     (feature) => feature.properties
                 );
+                console.log(DataFeature);
 
                 //outputting resource data in a popup
                 if (DataFeature.length > 0) {
@@ -1892,6 +1972,7 @@
             map.on('style.load', function () {
                 map.addLayer(customLayer, 'waterway-label');
             });
+
 
 
             //3d graphs - topology
