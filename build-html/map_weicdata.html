@@ -243,10 +243,19 @@
             #satellite {
                 background-color: #00b0e1;
             }
-            #extruded-buildings, #resources, #landmark-icons, #youarehere {
+            .spanspacer {
+                color: #4600ff;
+                margin: 10px 10px 10px 10px;
+                padding-left: 20px;
+                position: relative;
+                text-align: center;
+                justify-self: center;
+                font-family: 'Roboto Mono', sans-serif;
+            }
+            #extruded-buildings, #resources, #landmark-icons, #youarehere, #elevations {
                 background-color: #4600ff;
             }
-            #satellite, #extruded-buildings, #resources, #landmark-icons, #youarehere {
+            #satellite, #extruded-buildings, #resources, #landmark-icons, #youarehere, #elevations {
                 color: #fff;
                 margin: 10px 10px 10px 10px;
                 border-radius: 0.5em;
@@ -337,8 +346,11 @@
                 <!-- Turn on/off layers -->
                 <h3 class="faded">On/Off</h3>
                 <div id="resources" class="on faded">Hide Resources</div>
-                <div id="extruded-buildings" class="on faded">Hide 3D Buildings</div>
                 <div id="landmark-icons" class="on faded">Hide Landmark Icons</div>
+                <span class="spanspacer">3D Content</span>
+                <div id="elevations" class="on faded">Hide Elevations</div>
+                <div id="extruded-buildings" class="on faded">Hide 3D Buildings</div>
+                <span></span>
                 <div id="satellite" class="faded">Add satellite</div>
 
                 <!-- Categories list -->
@@ -527,6 +539,7 @@
             const buildingsSwitch = document.getElementById('extruded-buildings');
             const resourcesSwitch = document.getElementById('resources');
             const landmarkSwitch = document.getElementById('landmark-icons');
+            const elevationSwitch = document.getElementById('elevations');
 
             const TechImpactLocations = {
                 type: 'FeatureCollection',
@@ -618,80 +631,104 @@
             };
             resourcesSwitch.onclick = () => {
                 if (resourcesSwitch.classList.contains("on")) {
-                    map.setLayoutProperty('weic-features', 'visibility', 'none');
+                    visibleLayer('weic-features', false);
                     //map.setLayoutProperty('heat-glow-base', 'visibility', 'none');
                     //map.setLayoutProperty('heat-glow-mid', 'visibility', 'none');
-                    resourcesSwitch.classList.toggle('on');
-                    resourcesSwitch.style.backgroundColor = "#00b0e1";
-                    resourcesSwitch.style.transition = "all 300ms ease-in";
-                    resourcesSwitch.innerHTML = "Show Resources"
+                    styleToOff(resourcesSwitch, "Resources");
                 }
                 else {
-                    map.setLayoutProperty('weic-features', 'visibility', 'visible');
+                    visibleLayer('weic-features', true);
                     //map.setLayoutProperty('heat-glow-base', 'visibility', 'visible');
                     //map.setLayoutProperty('heat-glow-mid', 'visibility', 'visible');
-                    resourcesSwitch.classList.toggle('on');
-                    resourcesSwitch.style.backgroundColor = "#4600ff";
-                    resourcesSwitch.style.transition = "all 300ms ease-out";
-                    resourcesSwitch.innerHTML = "Hide Resources";
+                    styleToOn(resourcesSwitch, "Resources");
                 }
+                resourcesSwitch.classList.toggle('on');
             }
             buildingsSwitch.onclick = () => {
                 if (buildingsSwitch.classList.contains("on")) {
-                    map.setLayoutProperty('extruded-buildings', 'visibility', 'none');
-                    buildingsSwitch.classList.toggle('on');
-                    buildingsSwitch.style.backgroundColor = "#00b0e1";
-                    buildingsSwitch.style.transition = "all 300ms ease-in";
-                    buildingsSwitch.innerHTML = "Show 3D Buildings"
+                    visibleLayer('extruded-buildings', false);
+                    styleToOff(buildingsSwitch, "3D Buildings");
                 }
                 else {
-                    map.setLayoutProperty('extruded-buildings', 'visibility', 'visible');
-                    buildingsSwitch.classList.toggle('on');
-                    buildingsSwitch.style.backgroundColor = "#4600ff";
-                    buildingsSwitch.style.transition = "all 300ms ease-out";
-                    buildingsSwitch.innerHTML = "Hide 3D Buildings";
+                    visibleLayer('extruded-buildings', true);
+                    styleToOn(buildingsSwitch, "3D Buildings");
                 }
+                buildingsSwitch.classList.toggle('on');
             }
             satelliteSwitch.onclick = () => {
                 if (satelliteSwitch.classList.contains("on")) {
-                    map.setLayoutProperty('satellite', 'visibility', 'none');
-                    satelliteSwitch.classList.toggle('on');
-                    satelliteSwitch.style.backgroundColor = "#00b0e1";
-                    satelliteSwitch.style.transition = "all 300ms ease-in";
-                    satelliteSwitch.innerHTML = "Show satellite";
+                    visibleLayer('satellite', false);
+                    styleToOff(satelliteSwitch, "Satellite");
                 }
                 else {
-                    map.setLayoutProperty('satellite', 'visibility', 'visible');
-                    satelliteSwitch.classList.toggle('on');
-                    satelliteSwitch.style.backgroundColor = "#4600ff";
-                    satelliteSwitch.style.transition = "all 300ms ease-out";
-                    satelliteSwitch.innerHTML = "Hide satellite";
+                    visibleLayer('satellite', true);
+                    styleToOn(satelliteSwitch, "Satellite")
                 }
+                satelliteSwitch.classList.toggle('on');
             }
             landmarkSwitch.onclick = () => {
                 if (landmarkSwitch.classList.contains("on")) {
-                    map.setLayoutProperty('mygeopoint', 'visibility', 'none');
+                    visibleLayer('mygeopoint', false);
                     let markers = document.getElementsByClassName("tilogo");
                     for (let i = 0; i < markers.length; i++) {
                         markers[i].style.visibility = "hidden";
                     }
-                    landmarkSwitch.classList.toggle('on');
-                    landmarkSwitch.style.backgroundColor = "#00b0e1";
-                    landmarkSwitch.style.transition = "all 300ms ease-in";
-                    landmarkSwitch.innerHTML = "Show Landmark Icons";
+                    styleToOff(landmarkSwitch, "Landmark Icons");
                 }
                 else {
-                    map.setLayoutProperty('mygeopoint', 'visibility', 'visible');
+                    visibleLayer('mygeopoint', true);
                     let markers = document.getElementsByClassName("tilogo");
                     for (let i = 0; i < markers.length; i++) {
                         markers[i].style.visibility = "visible";
                     }
-                    landmarkSwitch.classList.toggle('on');
-                    landmarkSwitch.style.backgroundColor = "#4600ff";
-                    landmarkSwitch.style.transition = "all 300ms ease-out";
-                    landmarkSwitch.innerHTML = "Hide Landmark Icons";
+                    styleToOn(landmarkSwitch, "Landmark Icons");
                 }
+                landmarkSwitch.classList.toggle('on');
             }
+            elevationSwitch.onclick = () => {
+                if (elevationSwitch.classList.contains("on")) {
+                    visibleLayer('clusters', false);
+                    visibleLayer('cluster-count', false);
+                    visibleLayer('unclustered-point', false);
+                    for(var i = 0; i < Cluster3DLayerStrings.length; i++) {
+                        if (typeof map.getLayer(Cluster3DLayerStrings[i] !== 'undefined')) {
+                            map.removeLayer(Cluster3DLayerStrings[i]);
+                        }
+                    }
+                    Cluster3DLayerStrings = [];
+                    if (typeof map.getLayer('threebox-instantiator') !== 'undefined') {
+                        map.removeLayer('threebox-instantiator');
+                    }
+                    styleToOff(elevationSwitch, "Elevations");
+                }
+                else {
+                    visibleLayer('clusters', true);
+                    visibleLayer('cluster-count', true);
+                    visibleLayer('unclustered-point', true);
+                    styleToOn(elevationSwitch, "Elevations");
+                }
+                elevationSwitch.classList.toggle('on');
+            }
+            function visibleLayer(layerid, visibleBool) {
+                (
+                    visibleBool 
+                    ? 
+                    map.setLayoutProperty(layerid, 'visibility', 'visible') 
+                    :
+                    map.setLayoutProperty(layerid, 'visibility', 'none') 
+                );
+            }
+            function styleToOn(switchname, htmlname) {
+                switchname.style.backgroundColor = "#4600ff";
+                switchname.style.transition = "all 300ms ease-out";
+                switchname.innerHTML = `Hide ${htmlname}`;
+            }
+            function styleToOff(switchname, htmlname) {
+                switchname.style.backgroundColor = "#00b0e1";
+                switchname.style.transition = "all 300ms ease-in";
+                switchname.innerHTML = `Show ${htmlname}`;
+            }
+
 
 
             
@@ -1400,7 +1437,6 @@
 
 
             map.on('moveend', function(e) {
-
                 //remove the Threebox instantiator layer, if it exists
                 //to start from a blank slate
                 if (typeof map.getLayer('threebox-instantiator') !== 'undefined') {
@@ -1469,6 +1505,9 @@
 
                     if(typeof map.getLayer(idstring) !== 'undefined') {
                         map.removeLayer(idstring);
+                        Cluster3DLayerStrings = Cluster3DLayerStrings.filter(function(identical) { 
+                            return identical !== idstring
+                        });
                     }
                     
                     var addableLayer = {
@@ -1498,11 +1537,12 @@
                         }
                     }
                     map.addLayer(addableLayer);
+                    Cluster3DLayerStrings.push(idstring);
+                    console.log(Cluster3DLayerStrings);
                 }
 
 
                 // Create a heatmap correlating to the clusters point_count
-                
             });
 
 
