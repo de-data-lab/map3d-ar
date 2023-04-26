@@ -322,8 +322,6 @@
         </style>
     </head>
     <body>
-        <!-- HTML -->
-        
         <!-- Flexbox -->
         <div class="wrapper">
             <div id="map"></div>
@@ -890,6 +888,8 @@
                     source: 'dots-geojson',
                     filter: ['has', 'point_count'],
                     paint: {
+                        'circle-blur': 0.9,
+                        'circle-opacity': 1,
                         'circle-color': [
                             'step',
                             ['get', 'point_count'],
@@ -916,25 +916,25 @@
                         'circle-radius': [
                             'step',
                             ['get', 'point_count'],
-                            9,
-                            6.67,
-                            12,
-                            13.33,
-                            15,
+                            13,
+                            6.67,   //point count
+                            18,
+                            13.33,  //point count
+                            21,
                             20,     //point count
-                            20,
-                            40,     //point count
                             30,
-                            100,    //point count
-                            40,
-                            150,    //point count
+                            40,     //point count
                             45,
+                            100,    //point count
+                            60,
+                            150,    //point count
+                            67,
                             200,    //point count
-                            50,
+                            75,
                             250,    //point count
-                            55,
+                            82,
                             300,    //point count
-                            60
+                            90
                         ]
                     }
                 });
@@ -948,6 +948,9 @@
                         'text-field': ['get', 'point_count'],
                         'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
                         'text-size': 12
+                    },
+                    paint: {
+                        'text-opacity': 0
                     }
                 });
                 //Layer for unclustered points
@@ -1439,7 +1442,8 @@
                     console.log(clusters[i].properties.point_count);
                     //
                     var thisid = clusters[i].id;
-                    var thisradius = clusters[i].layer.paint['circle-radius'] / 10;
+                    var thisradius = clusters[i].layer.paint['circle-radius'] * 0.5;
+                    var thiscount = clusters[i].properties.point_count;
 
                     let _r = clusters[i].layer.paint['circle-color'].r;
                     let _g = clusters[i].layer.paint['circle-color'].g;
@@ -1450,10 +1454,10 @@
                     var lineGeometry = [];
                     for (var l = 0; l < 200; l++) {
                         var delta = [
-                            Math.sin(l/5) * l/40,
-                            Math.cos(l/5) * l/40,
-                            l/10
-                        ];
+                            0,
+                            0,
+                            l/100 * thiscount
+                        ]
                         var newCoordinates = origin.map(function(d,i) {
                             return d + delta[i]
                         });
@@ -1476,7 +1480,7 @@
                             var tubeOptions = {
                                 geometry: lineGeometry,
                                 radius: thisradius,
-                                sides: 6,
+                                sides: 16,
                                 material: 'MeshPhysicalMaterial',
                                 color: thiscolor,
                                 anchor: 'center',
@@ -1495,6 +1499,10 @@
                     }
                     map.addLayer(addableLayer);
                 }
+
+
+                // Create a heatmap correlating to the clusters point_count
+                
             });
 
 
