@@ -252,10 +252,10 @@
                 justify-self: center;
                 font-family: 'Roboto Mono', sans-serif;
             }
-            #extruded-buildings, #resources, #landmark-icons, #youarehere, #elevations {
+            #extruded-buildings, #data, #landmark-icons, #youarehere, #elevations {
                 background-color: #4600ff;
             }
-            #satellite, #extruded-buildings, #resources, #landmark-icons, #youarehere, #elevations {
+            #satellite, #extruded-buildings, #data, #landmark-icons, #youarehere, #elevations {
                 color: #fff;
                 margin: 10px 10px 10px 10px;
                 border-radius: 0.5em;
@@ -345,6 +345,7 @@
 
                 <!-- Turn on/off layers -->
                 <h3 class="faded">On/Off</h3>
+                <div id="data" class="on faded">Hide Data</div>
                 <div id="landmark-icons" class="on faded">Hide Landmark Icons</div>
                 <span class="spanspacer">3D Content</span>
                 <div id="elevations" class="on faded">Hide Elevations</div>
@@ -400,34 +401,12 @@
                 maxZoom: 50,
                 scrollZoom: true
             };
-            var Categories = {
-                AcademicEducational: [],
-                EarlyChildhood: [], 
-                FoodNutrition: [], 
-                HealthHealthcare: [], 
-                Housing: [],
-                MentalHealth: [],
-                Recreational: [],  
-                Transportation: [], 
-                Other: []
-            };
             var Cluster3DLayerStrings = [];
-            var CategoryColors = {
-                FoodNutrition: "#A8E10C",       //A8E10C - Kelly Green
-                HealthHealthcare: "#FF5765",    //FF5765 - Coral
-                AcademicEducational: "#01DEE6", //01DEE6 - Teal
-                EarlyChildhood: "#FFDB15",      //FFDB15 - Yellow
-                Recreational: "#FF66E9",        //FF66E9 - Hot Pink
-                Housing: "#952B60",             //952B60 - Dark Pink
-                MentalHealth: "#4B0082",        //8A6FDF - Violet
-                Transportation: "#3D91E0",      //3D91E0 - Deep Blue 
-                Other: "#FDA649"                //FDA649 - Beige Orange
-            };
 
             const youarehereSwitch = document.getElementById('youarehere');
             const satelliteSwitch = document.getElementById('satellite');
             const buildingsSwitch = document.getElementById('extruded-buildings');
-            const resourcesSwitch = document.getElementById('resources');
+            const dataSwitch = document.getElementById('data');
             const landmarkSwitch = document.getElementById('landmark-icons');
             const elevationSwitch = document.getElementById('elevations');
 
@@ -488,6 +467,17 @@
                     essential: true // this animation is considered essential with respect to prefers-reduced-motion
                 });
             };
+            dataSwitch.onclick = () => {
+                if (dataSwitch.classList.contains("on")) {
+                    visibleLayer('intersection-features', false);
+                    styleToOff(dataSwitch, "Data");
+                }
+                else {
+                    visibleLayer('intersection-features', true);
+                    styleToOn(dataSwitch, "Data");
+                }
+                dataSwitch.classList.toggle('on');
+            }
             buildingsSwitch.onclick = () => {
                 if (buildingsSwitch.classList.contains("on")) {
                     visibleLayer('extruded-buildings', false);
@@ -815,8 +805,7 @@
                     paint: {
                         'circle-color': '#ffffff',
                         'circle-radius': 4,
-                        'circle-stroke-width': 2,
-                        'circle-stroke-color': '#11b4da',
+                        'circle-stroke-width': 0,
                         'circle-opacity': 0
                     }
                 });
