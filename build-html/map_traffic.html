@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Map of Delaware Traffic - Intersections and Crashes</title>
+        <meta name="description" content="You are here, in a 3D map of intersections and crash data from the DE Open Data Portal">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <meta http-equiv="cache-control" content="no-cache">
+        <meta http-equiv="expires" content="0">
+        <meta http-equiv="pragma" content="no-cache">
+        
+        <!-- Mapbox GL JS -->
+        <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
+        <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
+        <!--
+            Mapbox Directions
+        -->
+        <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js"></script>
+        <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css" type="text/css">
+        
+        <!-- Turf.js -->
+        <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
+        <!-- Polyline -->
+        <script src=https://cdnjs.cloudflare.com/ajax/libs/mapbox-polyline/1.1.1/polyline.js></script>
+
+        <!-- Three.js -->
+        <script src="https://unpkg.com/three@0.126.0/build/three.min.js"></script>
+        <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+
+        <!-- Threebox -->
+        <script src="../node_modules/threebox-plugin/dist/threebox.js" type="text/javascript"></script>
+
+        <style type="text/css">
+            @font-face {
+                font-family: 'Roboto Mono';
+                src: local('Roboto Mono'), local('RobotoMono-Regular'), url('../assets/RobotoMono-Regular.woff2') format('woff2');
+                font-style: normal;
+                font-weight: 400;
+            }
+            @font-face {
+                font-family: 'Roboto Mono';
+                src: local('Roboto Mono Medium'), local('RobotoMono-Medium'), url('../assets/RobotoMono-Medium.woff2') format('woff2');
+                font-style: normal;
+                font-weight: 500;
+            }
+            @font-face {
+                font-family: 'Greycliff';
+                src: local('Greycliff'), local('GreycliffCF-DemiBold'), url('../assets/GreycliffCF-DemiBold.woff2') format('woff2');
+                font-style: normal;
+                font-weight: 200;
+            }
+            * {
+                margin: 0;
+                padding: 0;
+                font-family: 'Roboto Mono';
+            }
+            html, body, section {
+                height: 100%;
+                font-family: sans-serif;
+            }
+            body {
+                background-color: #100826;
+                font-size: 0.85rem;
+                line-height: 150%;
+                text-align: left;
+            }
+            img {
+                width: 9rem;
+                padding-left: 60px;
+                padding-right: 60px;
+                padding-bottom: 0px;
+                padding-top: 30px;
+                color: #49dbce;
+            }
+            img:hover {
+                color: #ef2d5e;
+            }
+            a img {
+                padding-left: 0px;
+                padding-right: 0px;
+                padding-bottom: 0px;
+                padding-top: 30px;
+            }
+            a img:hover {
+                color: #ef2d5e;
+            }
+            h1 {
+                font-size: 2.5rem;
+                line-height: 150%;
+                margin: 0 0 0rem 0;
+                color: #49dbce;
+                opacity: 1.0;
+                padding-left: 20px;
+                padding-right: 20px;
+                padding-top: 80px;
+                padding-bottom: 60px;
+                font-family: 'Greycliff';
+            }
+            h3 {
+                font-family: 'Greycliff';
+                font-size: 2rem;
+                line-height: 150%;
+                margin: 0 0 0rem 0;
+                color: #4600ff;
+                padding-left: 20px;
+                padding-top: 30px;
+                padding-bottom: 10px;
+                padding-right: 20px;
+            }
+            p {
+                color: #fff;
+                opacity: 1.0;
+                padding-left: 20px;
+                padding-right: 20px;
+                padding-bottom: 30px;
+                line-height: 2rem;
+            }
+            /*
+            a {
+                color: #49dbce;
+                padding-left: 60px;
+                padding-right: 60px;
+                padding-top: 0px;
+                padding-bottom: 30px;
+                line-height: 2rem;
+                text-decoration: none;
+            }
+            */
+            a:hover {
+                color: #ef2d5e;
+                transition: ease-in 150ms;
+            }
+            a {
+                color: #49dbce;
+                opacity: 1.0;
+                padding-left: 60px;
+                padding-right: 60px;
+                padding-top: 10px;
+                padding-bottom: 0px;
+                line-height: 0.5rem;
+                text-decoration: none;
+                transition: ease-out 500ms;
+            }
+            .mapboxgl-popup-content {
+                font-family: 'Roboto Mono';
+                padding: 5%;
+                width: 300px;
+            }
+            .mapboxgl-popup-content-wrapper {
+                padding: 2%;
+            }
+            .wrapper {
+                display: flex;
+            }
+            #map {
+                height: 100vh;
+                width: 100%;
+            }
+            #collapse_button {
+                transform: rotate(45deg);
+                padding: 0 0rem;     
+                margin: 1 2rem;
+                width: 30px;
+                height: 30px;
+                transition: 500ms ease;
+            }
+            .controlpanel {
+                background-color: #100826;
+                border-radius: 0rem;
+                border: none;
+                flex-basis: 0;
+                transition: 500ms ease;
+                padding-left: 0px;
+                padding-right: 0px;
+                width: 0;
+                height: 100vh;
+                opacity: 0.0;
+                overflow-y: scroll;
+                overflow-x: hidden;
+            }
+            .open {
+                flex-basis: 30%;
+                border: solid 0.2rem #49dbce;
+                border-radius: 0rem;
+                transition: 500ms ease;
+                opacity: 1.0;
+            }
+            .controlpanel-toggle {
+                background-color: #100826;
+                color: #fff;
+                border: solid 0.2rem #49dbce;
+                border-radius: 0rem;
+                padding: 0.5rem;
+                height: 100vh;
+                top: 1rem;
+                left: 1rem;
+                width: 60px;
+                position: inherit;
+                z-index: 1000;
+                transition: 500ms ease;
+            }
+            .toggleopen {
+                border: solid 0.2rem #062a3e;
+                width: 40px;
+            }
+            .faded {
+                opacity: 0.0;
+                transition: 170ms ease;
+            }
+            .visible {
+                opacity: 1.0;
+                transition: 1000ms ease;
+            }
+            .listbar {
+                background: none;
+                color: #fff;
+                position: relative;
+                left: 0rem;
+                bottom: 1.8rem;
+                margin: 20px 20px 20px 20px;
+                padding: 1rem;
+                width: max-content;
+                margin: none;
+                border: none;
+                border-radius: 0.5rem;
+                font-family: 'Roboto Mono', sans-serif;
+            }
+            .cattable {
+                border-spacing: 0.5rem;
+                padding-bottom: 0;
+            }
+            .cattable td {
+                 border-spacing: 0.5rem;
+            }
+            .cattable .checkboxlabel {
+                width: fit-content;
+            }
+            .cattable .colorswatch {
+                width: 1.5rem;
+                border-radius: 0.2rem;
+            }
+            #satellite {
+                background-color: #00b0e1;
+            }
+            .spanspacer {
+                color: #4600ff;
+                margin: 10px 10px 10px 10px;
+                padding-left: 20px;
+                position: relative;
+                text-align: center;
+                justify-self: center;
+                font-family: 'Roboto Mono', sans-serif;
+            }
+            #extruded-buildings, #resources, #landmark-icons, #youarehere, #elevations {
+                background-color: #4600ff;
+            }
+            #satellite, #extruded-buildings, #resources, #landmark-icons, #youarehere, #elevations {
+                color: #fff;
+                margin: 10px 10px 10px 10px;
+                border-radius: 0.5em;
+                cursor: pointer;
+                position: relative;
+                text-align: center;
+                justify-self: center;
+                font-family: 'Roboto Mono', sans-serif;
+            }
+            #reports {
+                color: #fff;
+            }
+            .sidebar {
+                position: relative;
+                margin: 0px 10px 0px 20px;
+                padding: 20px;
+                border: none;
+                border-radius: 0.5rem;
+                background: none;
+                overflow-y: scroll;
+            }
+            .card {
+                font-size: small;
+                border-bottom: solid #d3d3d3 2px;
+                margin-bottom: 6px;
+            }
+            .card-header {
+                font-weight: bold;
+                padding: 6px;
+            }
+            .no-route {
+                background-color: #d3d3d3;
+                color: #000;
+            }
+            .resource-found {
+                background-color: #33a532;
+                color: #fff;
+            }
+            .route-found {
+                background-color: #f00; /*#33a532;*/
+                color: #fff;
+            }
+            .card-details {
+                padding: 3px 6px;
+            }
+            .tilogo {
+                background-image: url('../assets/techimpact_mainlogo_clear_space.svg');
+                background-size: cover;
+                width: 50px;
+                height: 50px;
+                cursor: pointer;
+            }
+            /* arrow common style */
+            .arrow {
+                display: inline-block;
+                width: 30px;
+                height: 30px;
+                border-top: 5px solid #49dbce;
+                border-right: 5px solid #49dbce;
+                border-radius: 0.5rem;
+                transition: 500ms ease;
+            }
+            .arrow:hover {
+                border-top: 4px solid #ef2d5e;
+                border-right: 4px solid #ef2d5e;
+            }
+            .arrow-rotate-left {
+                transform: rotate(-180deg);
+                transition: 500ms ease;
+                padding: 0 0rem;     
+                margin: 1 2rem;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Flexbox -->
+        <div class="wrapper">
+            <div id="map"></div>
+            <div class="controlpanel">
+                <h1 class="faded">Intersections and Crashes on Delaware Roadways</h1>
+                <p class="faded">A 3D map of data from the Delaware Open Data Portal, assessing the number of intersections on public roadways in Delaware, compared to crash incidents.</p>
+                <p class="faded">Witness the distribution of intersections and crashes in the state of Delaware, in immersive, engaging 3D!</p>
+
+                <!-- Fly to you-are-here location -->
+                <h3 class="faded">You Are Here</h3>
+                <div id="youarehere" class="faded">Fly To Your Location</div>
+
+                <!-- Turn on/off layers -->
+                <h3 class="faded">On/Off</h3>
+                <div id="landmark-icons" class="on faded">Hide Landmark Icons</div>
+                <span class="spanspacer">3D Content</span>
+                <div id="elevations" class="on faded">Hide Elevations</div>
+                <div id="extruded-buildings" class="on faded">Hide 3D Buildings</div>
+                <span></span>
+                <div id="satellite" class="faded">Add satellite</div>
+
+            </div>
+            <button class="controlpanel-toggle"
+                onclick="
+                    console.log(`Opening side panel ...`);
+                    //
+                    var controlpanel = document.querySelector('.controlpanel');
+                    controlpanel.classList.toggle('open');
+                    controlpanel.querySelectorAll('.faded').forEach(e => e.classList.toggle('visible'));
+                    const directionMultiplier = controlpanel.classList.contains('open') ? 1 : -1; 
+                    map.panBy([100*directionMultiplier, 0], { 
+                        duration: 500,
+                        easing: (t) => t<.5 ? 2*t*t : -1+(4-2*t)*t 
+                    });
+                    this.classList.toggle('toggleopen');
+                    this.querySelector('span').classList.toggle('arrow-rotate-left');
+                    //
+                    console.log(`Opened side panel!`);
+                ">
+                <div id="collapse_button">
+                    <span class="arrow"></span>
+                </div>
+            </button>
+        </div>
+
+        <!-- JavaScript -->
+        <script>
+            const params = {
+                accessToken: 'pk.eyJ1IjoibGlsbXJob3VzZSIsImEiOiJja3d1cm5nOHQxdDlrMnZueWY4dzlrbHY2In0.g14m2o2rHvNYYdDSsjwmqQ',
+                styles: {
+                    warmfuzzy: 'mapbox://styles/lilmrhouse/clckubrie00dw14qtav0gsq4u',
+                    purplelight: 'mapbox://styles/lilmrhouse/clcqnng2b000915sfqmiihlkj',
+                    purpledark: 'mapbox://styles/lilmrhouse/clcb57hs900ek14oxroe22xub'
+                },
+                center: [
+                    -75.551,
+                    38.938 //39.738
+                ],
+                projections: {
+                    mercator: 'mercator',
+                    globe: 'globe'
+                },
+                hash: false,
+                pitch: 60,
+                zoom: 9, //16.09,
+                minZoom: 0,
+                maxZoom: 50,
+                scrollZoom: true
+            };
+            var Categories = {
+                AcademicEducational: [],
+                EarlyChildhood: [], 
+                FoodNutrition: [], 
+                HealthHealthcare: [], 
+                Housing: [],
+                MentalHealth: [],
+                Recreational: [],  
+                Transportation: [], 
+                Other: []
+            };
+            var Cluster3DLayerStrings = [];
+            var CategoryColors = {
+                FoodNutrition: "#A8E10C",       //A8E10C - Kelly Green
+                HealthHealthcare: "#FF5765",    //FF5765 - Coral
+                AcademicEducational: "#01DEE6", //01DEE6 - Teal
+                EarlyChildhood: "#FFDB15",      //FFDB15 - Yellow
+                Recreational: "#FF66E9",        //FF66E9 - Hot Pink
+                Housing: "#952B60",             //952B60 - Dark Pink
+                MentalHealth: "#4B0082",        //8A6FDF - Violet
+                Transportation: "#3D91E0",      //3D91E0 - Deep Blue 
+                Other: "#FDA649"                //FDA649 - Beige Orange
+            };
+
+            const youarehereSwitch = document.getElementById('youarehere');
+            const satelliteSwitch = document.getElementById('satellite');
+            const buildingsSwitch = document.getElementById('extruded-buildings');
+            const resourcesSwitch = document.getElementById('resources');
+            const landmarkSwitch = document.getElementById('landmark-icons');
+            const elevationSwitch = document.getElementById('elevations');
+
+            var dotsdata = {};
+            var mygeo = [0,0];
+
+            // Add user location
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 9000,
+                maximumAge: 0
+            };
+            function success(pos) {
+                const crd = pos.coords;
+                //
+                console.log('Your current position is:');
+                console.log(`Latitude : ${crd.latitude}`);
+                console.log(`Longitude: ${crd.longitude}`);
+                console.log(`More or less ${crd.accuracy} meters.`);
+                //
+                mygeo = [crd.longitude,crd.latitude];
+                console.log(mygeo);
+                //
+                var mygeodata = {
+                    type: 'FeatureCollection',
+                    features: [
+                        {
+                            type: 'Feature',
+                            properties: {},
+                            geometry: {
+                                type: 'Point',
+                                coordinates: mygeo
+                            }
+                        }
+                    ]
+                };
+                map.getSource('mygeodata').setData(mygeodata);
+                map.flyTo({
+                    center: mygeo,
+                    essential: true
+                });
+            }
+            function error(err) {
+                console.warn(`ERROR(${err.code}): ${err.message}`);
+            }
+            function setMyGeolocation() {
+                if ("geolocation" in navigator) { 
+                    console.log("Geolocation in navigator");
+                    navigator.geolocation.getCurrentPosition(success, error, options);
+                } else { console.log("Geolocation not available!"); }
+            }
+
+
+            // Add UI functionality onclick
+            youarehereSwitch.onclick = () => {
+                map.flyTo({
+                    center: mygeo,
+                    essential: true // this animation is considered essential with respect to prefers-reduced-motion
+                });
+            };
+            buildingsSwitch.onclick = () => {
+                if (buildingsSwitch.classList.contains("on")) {
+                    visibleLayer('extruded-buildings', false);
+                    styleToOff(buildingsSwitch, "3D Buildings");
+                }
+                else {
+                    visibleLayer('extruded-buildings', true);
+                    styleToOn(buildingsSwitch, "3D Buildings");
+                }
+                buildingsSwitch.classList.toggle('on');
+            }
+            satelliteSwitch.onclick = () => {
+                if (satelliteSwitch.classList.contains("on")) {
+                    visibleLayer('satellite', false);
+                    styleToOff(satelliteSwitch, "Satellite");
+                }
+                else {
+                    visibleLayer('satellite', true);
+                    styleToOn(satelliteSwitch, "Satellite")
+                }
+                satelliteSwitch.classList.toggle('on');
+            }
+            landmarkSwitch.onclick = () => {
+                if (landmarkSwitch.classList.contains("on")) {
+                    visibleLayer('mygeopoint', false);
+                    let markers = document.getElementsByClassName("tilogo");
+                    for (let i = 0; i < markers.length; i++) {
+                        markers[i].style.visibility = "hidden";
+                    }
+                    styleToOff(landmarkSwitch, "Landmark Icons");
+                }
+                else {
+                    visibleLayer('mygeopoint', true);
+                    let markers = document.getElementsByClassName("tilogo");
+                    for (let i = 0; i < markers.length; i++) {
+                        markers[i].style.visibility = "visible";
+                    }
+                    styleToOn(landmarkSwitch, "Landmark Icons");
+                }
+                landmarkSwitch.classList.toggle('on');
+            }
+            elevationSwitch.onclick = () => {
+                if (elevationSwitch.classList.contains("on")) {
+                    visibleLayer('clusters', false);
+                    visibleLayer('cluster-count', false);
+                    visibleLayer('unclustered-point', false);
+                    for(var i = 0; i < Cluster3DLayerStrings.length; i++) {
+                        if (typeof map.getLayer(Cluster3DLayerStrings[i] !== 'undefined')) {
+                            map.removeLayer(Cluster3DLayerStrings[i]);
+                        }
+                    }
+                    Cluster3DLayerStrings = [];
+                    if (typeof map.getLayer('threebox-instantiator') !== 'undefined') {
+                        map.removeLayer('threebox-instantiator');
+                    }
+                    styleToOff(elevationSwitch, "Elevations");
+                }
+                else {
+                    visibleLayer('clusters', true);
+                    visibleLayer('cluster-count', true);
+                    visibleLayer('unclustered-point', true);
+                    styleToOn(elevationSwitch, "Elevations");
+                }
+                elevationSwitch.classList.toggle('on');
+            }
+            function visibleLayer(layerid, visibleBool) {
+                (
+                    visibleBool 
+                    ? 
+                    map.setLayoutProperty(layerid, 'visibility', 'visible') 
+                    :
+                    map.setLayoutProperty(layerid, 'visibility', 'none') 
+                );
+            }
+            function styleToOn(switchname, htmlname) {
+                switchname.style.backgroundColor = "#4600ff";
+                switchname.style.transition = "all 300ms ease-out";
+                switchname.innerHTML = `Hide ${htmlname}`;
+            }
+            function styleToOff(switchname, htmlname) {
+                switchname.style.backgroundColor = "#00b0e1";
+                switchname.style.transition = "all 300ms ease-in";
+                switchname.innerHTML = `Show ${htmlname}`;
+            }
+
+
+            
+            // Add the map
+            mapboxgl.accessToken = params.accessToken;
+            const map = new mapboxgl.Map({
+                container: 'map',
+                style: params.styles.purplelight,
+                projection: params.projections.globe,
+                center: params.center,
+                hash: params.hash,
+                pitch: params.pitch,
+                zoom: params.zoom,
+                minZoom: params.minZoom,
+                maxZoom: params.maxZoom,
+                scrollZoom: params.scrollZoom,
+                attributionControl: {
+                    position: 'bottom-left'
+                }
+            });
+
+            // Add navigation (zoom and rotation) controls
+            map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+
+            // Add the routes UI
+            const directions = new MapboxDirections({
+                accessToken: mapboxgl.accessToken,
+                unit: 'metric',
+                profile: 'mapbox/driving',
+                alternatives: true,
+                geometries: 'geojson',
+                controls: { instructions: true },
+                flyTo: false,
+                bbox: [params.center[0]-2, params.center[1]-2, params.center[0]+2, params.center[1]+2], // Boundary for Berkeley
+                proximity: {
+                    longitude: params.center[0],
+                    latitude: params.center[1]
+                }
+            });
+            map.addControl(directions, 'top-right');
+
+
+            // Add map content
+            map.on('load', () => {
+                //Images
+                map.loadImage(
+                    'https://docs.mapbox.com/mapbox-gl-js/assets/cat.png',
+                    (error, image) => {
+                        if (error) throw error;
+                        map.addImage('cat', image);
+                    });
+
+                //Sources
+                // Source for you-are-here point
+                map.addSource('mygeodata', {
+                    type: 'geojson',
+                    data: {
+                        type: 'FeatureCollection',
+                        features: [
+                            {
+                                type: 'Feature',
+                                properties: {},
+                                geometry: {
+                                    type: 'Point',
+                                    coordinates: mygeo
+                                }
+                            }
+                        ]
+                    }
+                });
+
+
+                //Sources for data-driven content
+                map.addSource('building', {
+                    type: 'vector',
+                    url: 'mapbox://mapbox.mapbox-streets-v8'
+                });
+                map.addSource('census-tract-shapefile', {
+                    type: 'vector',
+                    url: 'mapbox://lilmrhouse.3gd9m3do'
+                });
+                map.addSource('intersections', {
+                    type: 'geojson',
+                    data: '../assets/Delaware_Intersections_2.0.geojson',
+                    cluster: true,
+                    clusterMaxZoom: 12,
+                    clusterRadius: 80
+                });
+
+                //Layers
+                //Layer for the satellite tiles
+                map.addLayer({
+                    'id': 'satellite',
+                    'source': {
+                        'type': 'raster',
+                        'url': 'mapbox://mapbox.satellite',
+                        'tileSize': 256
+                    },
+                    'type': 'raster',
+                    'layout': {
+                        'visibility': 'none'
+                    }
+                });
+
+                //Layer for the census tracts with census data
+                map.addLayer({
+                    'id': 'census-tract-fills',
+                    'type': 'fill',
+                    'source': 'census-tract-shapefile',
+                    'source-layer': 'tl_2020_10_tract-9uewme',
+                    'layout': {
+                        'visibility': 'visible'
+                    },
+                    'paint': {
+                        'fill-opacity': 0
+                    }  
+                });
+
+                // Layer for 3D buildings
+                map.addLayer({
+                    'id': 'extruded-buildings',
+                    'type': 'fill-extrusion',
+                    'source': 'building',
+                    'source-layer': 'building',
+                    'layout': {
+                        'visibility': 'visible'
+                    },
+                    'paint': {
+                        'fill-extrusion-height': [
+                            "interpolate",
+                            ["linear"],
+                            ["get", "height"],
+                            0,
+                            0,
+                            500,
+                            [
+                                "case",
+                                [
+                                "==",
+                                ["get", "height"],
+                                0
+                                ],
+                                500,
+                                500
+                            ]
+                        ],
+                        'fill-extrusion-color': [
+                            "interpolate",
+                            ["linear"],
+                            ["get", "height"],
+                            0,
+                            "hsl(257, 88%, 40%)",
+                            150,
+                            "hsl(197, 85%, 60%)",
+                            300,
+                            "hsl(163, 83%, 58%)"
+                        ], //f7b6a6
+                        'fill-extrusion-opacity': 0.6
+                    }
+                });
+                
+                //Layers for circle clusters
+                map.addLayer({
+                    id: 'clusters',
+                    type: 'circle',
+                    source: 'intersections',
+                    filter: ['has', 'point_count'],
+                    paint: {
+                        'circle-blur': 0.9,
+                        'circle-opacity': 1,
+                        'circle-color': [
+                            'step',
+                            ['get', 'point_count'],
+                            '#FFFFFF',  //white
+                            50,
+                            '#B1F2FF',   //light blue
+                            250,
+                            '#8AECFF',
+                            500,
+                            '#51bbd6',  //blue
+                            1000,
+                            '#86CCB5',  //blue-green
+                            2000,
+                            '#BBDE95',  //yellow-green
+                            4000,
+                            '#F1F075',  //yellow
+                            6000,
+                            '#F1BE93', //yellow-orange
+                            15000,
+                            '#F28CB1', //pink-orange
+                            25000,
+                            '#F25ACF', //pink
+                        ],
+                        'circle-radius': [
+                            'step',
+                            ['get', 'point_count'],
+                            6,
+                            6.67,   //point count
+                            9,
+                            13.33,  //point count
+                            10,
+                            20,     //point count
+                            15,
+                            40,     //point count
+                            22,
+                            100,    //point count
+                            30,
+                            150,    //point count
+                            33,
+                            200,    //point count
+                            37,
+                            250,    //point count
+                            41,
+                            300,    //point count
+                            45
+                        ]
+                    }
+                });
+                //Layer for cluster count
+                map.addLayer({
+                    id: 'cluster-count',
+                    type: 'symbol',
+                    source: 'intersections',
+                    filter: ['has', 'point_count'],
+                    layout: {
+                        'text-field': ['get', 'point_count'],
+                        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                        'text-size': 12,
+                    },
+                    paint: {
+                        'text-opacity': 1,
+                        'text-translate': [0, 20]
+                    }
+                });
+                //Layer for unclustered points
+                map.addLayer({
+                    id: 'unclustered-point',
+                    type: 'circle',
+                    source: 'intersections',
+                    filter: ['!', ['has', 'point_count']],
+                    paint: {
+                        'circle-color': '#ffffff',
+                        'circle-radius': 4,
+                        'circle-stroke-width': 2,
+                        'circle-stroke-color': '#11b4da',
+                        'circle-opacity': 0
+                    }
+                });
+
+
+                //Layer for you-are-here point
+                map.addLayer({
+                    id: 'mygeopoint',
+                    type: 'symbol',
+                    source: 'mygeodata',
+                    layout: {
+                        'icon-image': 'cat',
+                        'icon-size': 0.2,
+                        'text-field': 'You are here'
+                    },
+                    paint: {
+                        'text-color': 'yellow',
+                        'text-translate': [0, 45]
+                    }
+                });
+                
+
+                // Layer for DE Intersections
+                map.addLayer({
+                    'id': 'intersection-features',
+                    'type': 'circle',
+                    'source': 'intersections',
+                    'layout': {
+                        'visibility': 'visible'
+                    },
+                    'paint': {
+                        'circle-color': '#FFFFFF',
+                        'circle-radius':
+                            ['interpolate', 
+                            ['linear'], 
+                            ['zoom'], 
+                            10, 
+                            3, 
+                            12, 
+                            9],
+                        'circle-stroke-width': 3,
+                        'circle-stroke-color': '#11b4da',
+                        'circle-opacity': 1
+                    }
+                });
+            });
+
+            // Collect all loaded resources into an object
+            map.once('idle', () => {
+                //Setting you-are-here
+                setMyGeolocation();
+            });
+
+
+            map.on('moveend', function(e) {
+                //remove the Threebox instantiator layer, if it exists
+                //to start from a blank slate
+                if (typeof map.getLayer('threebox-instantiator') !== 'undefined') {
+                    map.removeLayer('threebox-instantiator');
+                }
+                //blank layer to instantiate window.tb (Threebox)
+                map.addLayer({
+                    id: 'threebox-instantiator',
+                    type: 'custom',
+                    renderingMode: '3d',
+                    onAdd: function(map, mbxContext) {
+                        //instantiate threebox
+                        window.tb = new Threebox(
+                            map,
+                            mbxContext,
+                            {
+                                defaultLights: true,
+                                enableSelectingObjects: true,
+                                enableDraggingObjects: true,
+                                enableTooltips: true,
+                                enableHelpingTooltips: true
+                            }
+                        );
+                    },
+                    render: function(gl, matrix) {
+                        tb.update();
+                    }
+                });
+
+
+                //Clusters
+                var clusters = map.queryRenderedFeatures({ layers: ['clusters'] });
+                //console.log(clusters);
+
+
+                //Start the loop to create a clustertower 3D object for each cluster
+                console.log("Starting loop");
+                for(var i = 0; i < clusters.length / 2; i++) {
+                    //console.log(clusters[i].properties.point_count);
+                    //
+                    var thisid = clusters[i].id;
+                    var thisradius = clusters[i].layer.paint['circle-radius'] * 0.5;
+                    var thiscount = clusters[i].properties.point_count;
+
+                    let _r = clusters[i].layer.paint['circle-color'].r;
+                    let _g = clusters[i].layer.paint['circle-color'].g;
+                    let _b = clusters[i].layer.paint['circle-color'].b;
+                    var thiscolor = new THREE.Color(_r, _g, _b);
+
+                    var origin = [clusters[i].geometry.coordinates[0], clusters[i].geometry.coordinates[1], 0];
+                    var lineGeometry = [];
+                    for (var l = 0; l < 200; l++) {
+                        var delta = [
+                            0,
+                            0,
+                            l/1000 * thiscount
+                        ]
+                        var newCoordinates = origin.map(function(d,i) {
+                            return d + delta[i]
+                        });
+                        lineGeometry.push(newCoordinates);
+                    }
+
+                    //Threebox - create cluster-based elevations
+                    let idstring = ["clustertowers-", thisid].join('');
+
+                    if(typeof map.getLayer(idstring) !== 'undefined') {
+                        map.removeLayer(idstring);
+                        Cluster3DLayerStrings = Cluster3DLayerStrings.filter(function(identical) { 
+                            return identical !== idstring
+                        });
+                    }
+                    
+                    var addableLayer = {
+                        id: idstring,
+                        type: 'custom',
+                        renderingMode: '3d',
+                        onAdd: function(map, mbxContext) {
+                            //Threebox is already instantiated
+                            var tubeOptions = {
+                                geometry: lineGeometry,
+                                radius: thisradius,
+                                sides: 16,
+                                material: 'MeshPhysicalMaterial',
+                                color: thiscolor,
+                                anchor: 'center',
+                                side: THREE.DoubleSide
+                            }
+                            //instantiate the towers as cylinders
+                            let tube = tb.tube(tubeOptions)
+                                .setCoords(
+                                    [clusters[i].geometry.coordinates[0], clusters[i].geometry.coordinates[1], 1]
+                                );
+                            tb.add(tube);
+                        },
+                        render: function(gl, matrix) {
+                            tb.update();
+                        }
+                    }
+                    map.addLayer(addableLayer);
+                    Cluster3DLayerStrings.push(idstring);
+                    //console.log(Cluster3DLayerStrings);
+                }
+            });
+
+
+            // General Click functionality
+            map.on('click', function(e) {
+                //setting access for variables from data layers
+                const CensusTract = map.queryRenderedFeatures(e.point, {
+                    layers: ['census-tract-fills']
+                }).map(
+                    (feature) => feature.properties
+                );
+                console.log(CensusTract);
+                const DataFeature = map.queryRenderedFeatures(e.point, {
+                    layers: ['intersection-features']
+                }).map(
+                    (feature) => feature
+                );
+                console.log(DataFeature);
+
+                //outputting resource data in a popup
+                if (DataFeature.length > 0) {
+                    const clickcoordinates = [ DataFeature[0].geometry.coordinates[0], DataFeature[0].geometry.coordinates[1] ];
+                    while (Math.abs(e.lngLat.lng - clickcoordinates[0]) > 180) {
+                        clickcoordinates[0] += e.lngLat.lng > clickcoordinates[0] ? 360 : -360;
+                    }
+                    new mapboxgl.Popup()
+                    .setLngLat(clickcoordinates)
+                    .setHTML(
+                        `<b>Intersecting Roads (
+                            ${DataFeature[0].properties.INTERSECTING_ROADS.split(" | ").length - 1}
+                        )</b><br>
+                            ${DataFeature[0].properties.INTERSECTING_ROADS.slice(0, -3).replaceAll(' |', ',')}
+                        <br><br>` +
+                        `<b>Census Tract: ` + CensusTract[0].NAME + `</b><br>` +
+                        `<br>`
+                    )
+                    .addTo(map);
+                }
+            });
+
+        </script>
+    </body>
+</html>
