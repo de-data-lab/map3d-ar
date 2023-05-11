@@ -237,7 +237,7 @@
                 width: fit-content;
             }
             .cattable .colorswatch {
-                width: 1.5rem;
+                width: 3rem;
                 border-radius: 0.2rem;
             }
             #satellite {
@@ -351,7 +351,42 @@
                 <div id="elevations" class="on faded">Hide Elevations</div>
                 <div id="extruded-buildings" class="on faded">Hide 3D Buildings</div>
                 <span></span>
-                <div id="satellite" class="faded">Add satellite</div>
+                <div id="satellite" class="faded">Show satellite</div>
+
+                <!-- Data selections :: Intersections & Crashes -->
+                <h3 class="faded">Filters</h3>
+                <div id="catlist" class="listbar faded">
+                    <table class="cattable">
+                        <tr>
+                            <td class="checkboxlabel">
+                                <input class="filter_All" id="AllCategories" value="AllCategories" type="checkbox"
+                                    onclick="
+                                        for (var i = 0; i < filtercatsboxes.length; i++){
+                                            filtercatsboxes[i].checked = this.checked;
+                                        }
+                                    "
+                                    onchange="filterOutData.call(this, event)"
+                                    checked="checked">ALL</input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="checkboxlabel">
+                                <input class="filter_Intersections" id="Intersections" name="filters" value="Intersections" type="checkbox"
+                                    onchange="filterOutIntersections.call(this, event);"
+                                    checked="checked">Intersections</input>
+                            </td>
+                            <td class="colorswatch" style="background-image: linear-gradient(to right, #fafa6e, #007c7d);"></td>
+                        </tr>
+                        <tr>
+                            <td class="checkboxlabel">
+                                <input class="filter_Crashes" id="Crashes" name="filters" value="Crashes" type="checkbox"
+                                    onchange="filterOutCrashes.call(this, event);"
+                                    checked="checked">Crashes</input>
+                            </td>
+                            <td class="colorswatch" style="background-image: linear-gradient(to right, #fb9f3a, #46039f);"></td>
+                        </tr>
+                    </table>
+                </div>
 
             </div>
             <button class="controlpanel-toggle"
@@ -403,6 +438,8 @@
             };
             var Cluster3DLayerStrings = [];
 
+            const catlist = document.getElementById('catlist');
+            const filtercatsboxes = document.getElementsByName('filters');
             const youarehereSwitch = document.getElementById('youarehere');
             const satelliteSwitch = document.getElementById('satellite');
             const buildingsSwitch = document.getElementById('extruded-buildings');
@@ -470,10 +507,12 @@
             dataSwitch.onclick = () => {
                 if (dataSwitch.classList.contains("on")) {
                     visibleLayer('intersection-features', false);
+                    visibleLayer('crash-features', false);
                     styleToOff(dataSwitch, "Data");
                 }
                 else {
                     visibleLayer('intersection-features', true);
+                    visibleLayer('crash-features', true);
                     styleToOn(dataSwitch, "Data");
                 }
                 dataSwitch.classList.toggle('on');
@@ -521,9 +560,12 @@
             }
             elevationSwitch.onclick = () => {
                 if (elevationSwitch.classList.contains("on")) {
-                    visibleLayer('clusters', false);
-                    visibleLayer('cluster-count', false);
-                    visibleLayer('unclustered-point', false);
+                    visibleLayer('clusters-intersections', false);
+                    visibleLayer('clusters-crashes', false);
+                    visibleLayer('cluster-count-intersections', false);
+                    visibleLayer('cluster-count-crashes', false);
+                    visibleLayer('unclustered-point-intersections', false);
+                    visibleLayer('unclustered-point-crashes', false);
                     for(var i = 0; i < Cluster3DLayerStrings.length; i++) {
                         if (typeof map.getLayer(Cluster3DLayerStrings[i] !== 'undefined')) {
                             map.removeLayer(Cluster3DLayerStrings[i]);
@@ -536,9 +578,12 @@
                     styleToOff(elevationSwitch, "Elevations");
                 }
                 else {
-                    visibleLayer('clusters', true);
-                    visibleLayer('cluster-count', true);
-                    visibleLayer('unclustered-point', true);
+                    visibleLayer('clusters-intersections', true);
+                    visibleLayer('clusters-crashes', true);
+                    visibleLayer('cluster-count-intersections', true);
+                    visibleLayer('cluster-count-crashes', true);
+                    visibleLayer('unclustered-point-intersections', true);
+                    visibleLayer('unclustered-point-crashes', true);
                     styleToOn(elevationSwitch, "Elevations");
                 }
                 elevationSwitch.classList.toggle('on');
@@ -562,7 +607,90 @@
                 switchname.style.transition = "all 300ms ease-in";
                 switchname.innerHTML = `Show ${htmlname}`;
             }
-
+            function filterOutData(e) {
+                console.log(e);
+                if (e.target.checked) {
+                    visibleLayer('crash-features', true);
+                    visibleLayer('clusters-crashes', true);
+                    visibleLayer('cluster-count-crashes', true);
+                    visibleLayer('unclustered-point-crashes', true);
+                    //
+                    visibleLayer('intersection-features', true);
+                    visibleLayer('clusters-intersections', true);
+                    visibleLayer('cluster-count-intersections', true);
+                    visibleLayer('unclustered-point-intersections', true);
+                    //
+                    updateElevations('clusters-crashes', 10000);
+                    updateElevations('clusters-intersections', 1000);
+                }
+                else {
+                    visibleLayer('crash-features', false);
+                    visibleLayer('clusters-crashes', false);
+                    visibleLayer('cluster-count-crashes', false);
+                    visibleLayer('unclustered-point-crashes', false);
+                    //
+                    visibleLayer('intersection-features', false);
+                    visibleLayer('clusters-intersections', false);
+                    visibleLayer('cluster-count-intersections', false);
+                    visibleLayer('unclustered-point-intersections', false);
+                    //
+                    for(var i = 0; i < Cluster3DLayerStrings.length; i++) {
+                        if (typeof map.getLayer(Cluster3DLayerStrings[i] !== 'undefined')) {
+                            map.removeLayer(Cluster3DLayerStrings[i]);
+                        }
+                    }
+                    Cluster3DLayerStrings = [];
+                    if (typeof map.getLayer('threebox-instantiator') !== 'undefined') {
+                        map.removeLayer('threebox-instantiator');
+                    }
+                }
+            }
+            function filterOutCrashes(e) {
+                console.log(e);
+                if (e.target.checked) {
+                    visibleLayer('crash-features', true);
+                    visibleLayer('clusters-crashes', true);
+                    visibleLayer('cluster-count-crashes', true);
+                    visibleLayer('unclustered-point-crashes', true);
+                }
+                else {
+                    visibleLayer('crash-features', false);
+                    visibleLayer('clusters-crashes', false);
+                    visibleLayer('cluster-count-crashes', false);
+                    visibleLayer('unclustered-point-crashes', false);
+                    for(var i = 0; i < Cluster3DLayerStrings.length; i++) {
+                        if (Cluster3DLayerStrings[i].includes('clusters-crashes')) {
+                            map.removeLayer(Cluster3DLayerStrings[i]);
+                            Cluster3DLayerStrings.splice(i, 1);
+                            i--;
+                        }
+                    }
+                    console.log(Cluster3DLayerStrings);
+                }
+            }
+            function filterOutIntersections(e) {
+                console.log(e);
+                if (e.target.checked) {
+                    visibleLayer('intersection-features', true);
+                    visibleLayer('clusters-intersections', true);
+                    visibleLayer('cluster-count-intersections', true);
+                    visibleLayer('unclustered-point-intersections', true);
+                }
+                else {
+                    visibleLayer('intersection-features', false);
+                    visibleLayer('clusters-intersections', false);
+                    visibleLayer('cluster-count-intersections', false);
+                    visibleLayer('unclustered-point-intersections', false);
+                    for(var i = 0; i < Cluster3DLayerStrings.length; i++) {
+                        if (Cluster3DLayerStrings[i].includes('clusters-intersections')) {
+                            map.removeLayer(Cluster3DLayerStrings[i]);
+                            Cluster3DLayerStrings.splice(i, 1);
+                            i--;
+                        }
+                    }
+                    console.log(Cluster3DLayerStrings);
+                }
+            }
 
             
             // Add the map
@@ -650,6 +778,13 @@
                     clusterMaxZoom: 12,
                     clusterRadius: 80
                 });
+                map.addSource('crashes', {
+                    type: 'geojson',
+                    data: 'https://data.delaware.gov/resource/827n-m6xc.geojson',
+                    cluster: true,
+                    clusterMaxZoom: 12,
+                    clusterRadius: 80
+                });
 
                 //Layers
                 //Layer for the satellite tiles
@@ -722,10 +857,94 @@
                         'fill-extrusion-opacity': 0.6
                     }
                 });
-                
-                //Layers for circle clusters
+
+
+                //Layers for circle clusters - crashes
+                //Crashes heatmap gradient :: Plasma
                 map.addLayer({
-                    id: 'clusters',
+                    id: 'clusters-crashes',
+                    type: 'circle',
+                    source: 'crashes',
+                    filter: ['has', 'point_count'],
+                    paint: {
+                        'circle-blur': 0.9,
+                        'circle-opacity': 1,
+                        'circle-color': [
+                            'step',
+                            ['get', 'point_count'],
+                            '#fb9f3a',  //tangerine
+                            1000,
+                            '#ed7953',  //orange
+                            5000,
+                            '#d8576b',  //tomato
+                            10000,
+                            '#bd3786',  //fuchsia
+                            50000,
+                            '#9c179e',  //boysenberry
+                            150000,
+                            '#7201a8',  //purple
+                            300000,
+                            '#46039f',  //purpindigo
+                            600000,
+                            '#0d0887',  //indigo
+                        ],
+                        'circle-radius': [
+                            'step',
+                            ['get', 'point_count'],
+                            10,
+                            1000,     //point count
+                            15,
+                            5000,     //point count
+                            22,
+                            10000,    //point count
+                            30,
+                            50000,    //point count
+                            33,
+                            150000,    //point count
+                            37,
+                            300000,    //point count
+                            41,
+                            600000,    //point count
+                            45
+                        ]
+                    }
+                });
+                //Layer for cluster count
+                map.addLayer({
+                    id: 'cluster-count-crashes',
+                    type: 'symbol',
+                    source: 'crashes',
+                    filter: ['has', 'point_count'],
+                    layout: {
+                        'text-field': ['get', 'point_count'],
+                        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                        'text-size': 12,
+                    },
+                    paint: {
+                        'text-opacity': 1,
+                        'text-translate': [0, 20]
+                    }
+                });
+                //Layer for unclustered points
+                map.addLayer({
+                    id: 'unclustered-point-crashes',
+                    type: 'circle',
+                    source: 'crashes',
+                    filter: ['!', ['has', 'point_count']],
+                    paint: {
+                        'circle-color': '#ffffff',
+                        'circle-radius': 4,
+                        'circle-stroke-width': 0,
+                        'circle-opacity': 0
+                    }
+                });
+                
+
+                
+                //Layers for circle clusters - intersections
+                // Intersections heatmap gradient :: Viridis
+                map.addLayer({
+                    id: 'clusters-intersections',
                     type: 'circle',
                     source: 'intersections',
                     filter: ['has', 'point_count'],
@@ -735,54 +954,54 @@
                         'circle-color': [
                             'step',
                             ['get', 'point_count'],
-                            '#FFFFFF',  //white
+                            '#fafa6e',  //pale yellow
                             50,
-                            '#B1F2FF',   //light blue
+                            '#caec71',   //sour yellow
                             250,
-                            '#8AECFF',
+                            '#9ddd77',  //lime-citrusy yellow
                             500,
-                            '#51bbd6',  //blue
+                            '#73cb7d',  //pale green
                             1000,
-                            '#86CCB5',  //blue-green
+                            '#4bb882',  //bright green
                             2000,
-                            '#BBDE95',  //yellow-green
+                            '#21a585',  //green
                             4000,
-                            '#F1F075',  //yellow
+                            '#009183',  //blue green
                             6000,
-                            '#F1BE93', //yellow-orange
+                            '#007c7d', //turquoise
                             15000,
-                            '#F28CB1', //pink-orange
+                            '#006872', //blue
                             25000,
-                            '#F25ACF', //pink
+                            '#005463', //deep blue
                         ],
                         'circle-radius': [
                             'step',
                             ['get', 'point_count'],
                             6,
-                            6.67,   //point count
+                            50,   //point count
                             9,
-                            13.33,  //point count
+                            250,  //point count
                             10,
-                            20,     //point count
+                            500,     //point count
                             15,
-                            40,     //point count
+                            1000,     //point count
                             22,
-                            100,    //point count
+                            2000,    //point count
                             30,
-                            150,    //point count
+                            4000,    //point count
                             33,
-                            200,    //point count
+                            6000,    //point count
                             37,
-                            250,    //point count
+                            15000,    //point count
                             41,
-                            300,    //point count
+                            25000,    //point count
                             45
                         ]
                     }
                 });
                 //Layer for cluster count
                 map.addLayer({
-                    id: 'cluster-count',
+                    id: 'cluster-count-intersections',
                     type: 'symbol',
                     source: 'intersections',
                     filter: ['has', 'point_count'],
@@ -798,7 +1017,7 @@
                 });
                 //Layer for unclustered points
                 map.addLayer({
-                    id: 'unclustered-point',
+                    id: 'unclustered-point-intersections',
                     type: 'circle',
                     source: 'intersections',
                     filter: ['!', ['has', 'point_count']],
@@ -824,6 +1043,31 @@
                     paint: {
                         'text-color': 'yellow',
                         'text-translate': [0, 45]
+                    }
+                });
+
+
+                // Layer for DE Public Crashes
+                map.addLayer({
+                    'id': 'crash-features',
+                    'type': 'circle',
+                    'source': 'crashes',
+                    'layout': {
+                        'visibility': 'visible'
+                    },
+                    'paint': {
+                        'circle-color': '#FFFFFF',
+                        'circle-radius':
+                            ['interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            10,
+                            3,
+                            12,
+                            9],
+                        'circle-stroke-width': 3,
+                        'circle-stroke-color': '#4B0076',
+                        'circle-stroke-opacity': 1
                     }
                 });
                 
@@ -857,10 +1101,101 @@
             map.once('idle', () => {
                 //Setting you-are-here
                 setMyGeolocation();
+
+                //Output all public crash data in console
+                const CrashFeatures = map.queryRenderedFeatures({layers: ['crash-features']}).map(
+                    (features) => features.properties
+                );
+                console.log(CrashFeatures);
+
+                //Update all Threebox-related objects
+                updateAll3D();
             });
 
 
             map.on('moveend', function(e) {
+                updateAll3D();
+            });
+
+
+            // General Click functionality
+            map.on('click', function(e) {
+                //setting access for variables from data layers
+                const CensusTract = map.queryRenderedFeatures(e.point, {
+                    layers: ['census-tract-fills']
+                }).map(
+                    (feature) => feature.properties
+                );
+                console.log(CensusTract);
+
+                const CrashFeature = map.queryRenderedFeatures(e.point, {
+                    layers: ['crash-features']
+                }).map(
+                    (feature) => feature
+                );
+                console.log(CrashFeature);
+
+                const IntersectionFeature = map.queryRenderedFeatures(e.point, {
+                    layers: ['intersection-features']
+                }).map(
+                    (feature) => feature
+                );
+                console.log(IntersectionFeature);
+
+                //outputting intersection data in a popup
+                if (IntersectionFeature.length > 0 || CrashFeature.length > 0) {
+                    const clickcoordinates =
+                        IntersectionFeature.length > 0
+                        ?
+                        [ IntersectionFeature[0].geometry.coordinates[0], IntersectionFeature[0].geometry.coordinates[1] ]
+                        :
+                        [ CrashFeature[0].geometry.coordinates[0], CrashFeature[0].geometry.coordinates[1] ];
+                    
+                    while (Math.abs(e.lngLat.lng - clickcoordinates[0]) > 180) {
+                        clickcoordinates[0] += e.lngLat.lng > clickcoordinates[0] ? 360 : -360;
+                    }
+
+                    const popup = new mapboxgl.Popup().setLngLat(clickcoordinates);
+
+                    var popupHTML =
+                        IntersectionFeature.length > 0
+                        ?
+                        `<b>Intersecting Roads (
+                            ${IntersectionFeature[0].properties.INTERSECTING_ROADS.split(" | ").length - 1}
+                        )</b><br>
+                            ${IntersectionFeature[0].properties.INTERSECTING_ROADS.slice(0, -3).replaceAll(' |', ',')}
+                        <br><br>`
+                        :
+                        ``;
+                    popupHTML +=
+                        CrashFeature.length > 0
+                        ?
+                        `<b>Crash Description:</b>
+                        <br>
+                        ${CrashFeature[0].properties.impact_desc};
+                        <br>
+                        ${CrashFeature[0].properties.pri_contrib_circum_desc}
+                        <br><br>`
+                        :
+                        ``;
+                    popupHTML += 
+                        `<b>Census Tract: ` + CensusTract[0].NAME + `</b><br><br>`;
+                    
+
+                    new mapboxgl.Popup()
+                    .setLngLat(clickcoordinates)
+                    .setHTML(popupHTML)
+                    .addTo(map);
+                }
+            });
+
+
+            function updateAll3D() {
+                updateThreebox();
+                updateElevations('clusters-intersections', 1000);
+                updateElevations('clusters-crashes', 10000);
+            }
+            function updateThreebox() {
                 //remove the Threebox instantiator layer, if it exists
                 //to start from a blank slate
                 if (typeof map.getLayer('threebox-instantiator') !== 'undefined') {
@@ -889,20 +1224,18 @@
                         tb.update();
                     }
                 });
-
-
-                //Clusters
-                var clusters = map.queryRenderedFeatures({ layers: ['clusters'] });
-                //console.log(clusters);
-
-
+            }
+            function updateElevations(layerName, deltaCoefficient) {
+                //Clusters - crashes
+                var clusters = map.queryRenderedFeatures({ layers: [layerName] });
+                //
                 //Start the loop to create a clustertower 3D object for each cluster
                 console.log("Starting loop");
                 for(var i = 0; i < clusters.length / 2; i++) {
                     //console.log(clusters[i].properties.point_count);
                     //
-                    var thisid = clusters[i].id;
-                    var thisradius = clusters[i].layer.paint['circle-radius'] * 0.5;
+                    var thisid = `${layerName}-${clusters[i].id}`;
+                    var thisradius = clusters[i].layer.paint['circle-radius'];
                     var thiscount = clusters[i].properties.point_count;
 
                     let _r = clusters[i].layer.paint['circle-color'].r;
@@ -916,7 +1249,7 @@
                         var delta = [
                             0,
                             0,
-                            l/1000 * thiscount
+                            l/deltaCoefficient * thiscount
                         ]
                         var newCoordinates = origin.map(function(d,i) {
                             return d + delta[i]
@@ -964,45 +1297,7 @@
                     Cluster3DLayerStrings.push(idstring);
                     //console.log(Cluster3DLayerStrings);
                 }
-            });
-
-
-            // General Click functionality
-            map.on('click', function(e) {
-                //setting access for variables from data layers
-                const CensusTract = map.queryRenderedFeatures(e.point, {
-                    layers: ['census-tract-fills']
-                }).map(
-                    (feature) => feature.properties
-                );
-                console.log(CensusTract);
-                const DataFeature = map.queryRenderedFeatures(e.point, {
-                    layers: ['intersection-features']
-                }).map(
-                    (feature) => feature
-                );
-                console.log(DataFeature);
-
-                //outputting resource data in a popup
-                if (DataFeature.length > 0) {
-                    const clickcoordinates = [ DataFeature[0].geometry.coordinates[0], DataFeature[0].geometry.coordinates[1] ];
-                    while (Math.abs(e.lngLat.lng - clickcoordinates[0]) > 180) {
-                        clickcoordinates[0] += e.lngLat.lng > clickcoordinates[0] ? 360 : -360;
-                    }
-                    new mapboxgl.Popup()
-                    .setLngLat(clickcoordinates)
-                    .setHTML(
-                        `<b>Intersecting Roads (
-                            ${DataFeature[0].properties.INTERSECTING_ROADS.split(" | ").length - 1}
-                        )</b><br>
-                            ${DataFeature[0].properties.INTERSECTING_ROADS.slice(0, -3).replaceAll(' |', ',')}
-                        <br><br>` +
-                        `<b>Census Tract: ` + CensusTract[0].NAME + `</b><br>` +
-                        `<br>`
-                    )
-                    .addTo(map);
-                }
-            });
+            }
 
         </script>
     </body>
