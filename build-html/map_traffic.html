@@ -780,7 +780,8 @@
                 });
                 map.addSource('crashes', {
                     type: 'geojson',
-                    data: 'https://data.delaware.gov/resource/827n-m6xc.geojson?$where=crash_datetime%20%3E%20%272021-12-31T11:59:00.000Z%27&$limit=75000',
+                    data: 
+                        'https://data.delaware.gov/resource/827n-m6xc.geojson?$where=crash_datetime%20%3E%20%272021-12-31T11:59:00.000Z%27&$limit=75000',
                     cluster: true,
                     clusterMaxZoom: 12,
                     clusterRadius: 80
@@ -1171,6 +1172,8 @@
                         CrashFeature.length > 0
                         ?
                         `<b>Crash Description:</b>
+                        <br>
+                        ${CrashFeature[0].properties.crash_datetime.substr(0, 10)};
                         <br>
                         ${CrashFeature[0].properties.impact_desc};
                         <br>
