@@ -375,7 +375,7 @@
                                     onchange="filterOutIntersections.call(this, event);"
                                     checked="checked">Intersections</input>
                             </td>
-                            <td class="colorswatch" style="background-image: linear-gradient(to right, #fafa6e, #007c7d);"></td>
+                            <td class="colorswatch" style="background-image: linear-gradient(to right, #73cb7d, #007c7d);"></td>
                         </tr>
                         <tr>
                             <td class="checkboxlabel">
@@ -383,7 +383,7 @@
                                     onchange="filterOutCrashes.call(this, event);"
                                     checked="checked">Crashes</input>
                             </td>
-                            <td class="colorswatch" style="background-image: linear-gradient(to right, #fb9f3a, #46039f);"></td>
+                            <td class="colorswatch" style="background-image: linear-gradient(to right, 	#ffc2cd,#ff084a);"></td>
                         </tr>
                     </table>
                 </div>
@@ -620,7 +620,7 @@
                     visibleLayer('cluster-count-intersections', true);
                     visibleLayer('unclustered-point-intersections', true);
                     //
-                    updateElevations('clusters-crashes', 10000);
+                    updateElevations('clusters-crashes', 1000);
                     updateElevations('clusters-intersections', 1000);
                 }
                 else {
@@ -873,39 +873,27 @@
                         'circle-color': [
                             'step',
                             ['get', 'point_count'],
-                            '#fb9f3a',  //tangerine
-                            1000,
-                            '#ed7953',  //orange
+                            '#ffc2cd',
+                            2500,
+                            '#ff93ac',
                             5000,
-                            '#d8576b',  //tomato
+                            '#ff6289',
                             10000,
-                            '#bd3786',  //fuchsia
-                            50000,
-                            '#9c179e',  //boysenberry
-                            150000,
-                            '#7201a8',  //purple
-                            300000,
-                            '#46039f',  //purpindigo
-                            600000,
-                            '#0d0887',  //indigo
+                            '#fc3468',
+                            15000,
+                            '#ff084a'
                         ],
                         'circle-radius': [
                             'step',
                             ['get', 'point_count'],
                             10,
-                            1000,     //point count
+                            2500,     //point count
                             15,
                             5000,     //point count
                             22,
                             10000,    //point count
-                            30,
-                            50000,    //point count
-                            33,
-                            150000,    //point count
-                            37,
-                            300000,    //point count
                             41,
-                            600000,    //point count
+                            15000,    //point count
                             45
                         ]
                     }
@@ -955,48 +943,28 @@
                         'circle-color': [
                             'step',
                             ['get', 'point_count'],
-                            '#fafa6e',  //pale yellow
-                            50,
-                            '#caec71',   //sour yellow
-                            250,
-                            '#9ddd77',  //lime-citrusy yellow
-                            500,
                             '#73cb7d',  //pale green
-                            1000,
+                            500,
                             '#4bb882',  //bright green
-                            2000,
+                            3000,
                             '#21a585',  //green
-                            4000,
-                            '#009183',  //blue green
                             6000,
-                            '#007c7d', //turquoise
-                            15000,
-                            '#006872', //blue
-                            25000,
-                            '#005463', //deep blue
+                            '#009183',  //blue green
+                            12000,
+                            '#007c7d' //turquoise
                         ],
                         'circle-radius': [
                             'step',
                             ['get', 'point_count'],
-                            6,
-                            50,   //point count
-                            9,
-                            250,  //point count
-                            10,
-                            500,     //point count
                             15,
-                            1000,     //point count
+                            500,     //point count
                             22,
-                            2000,    //point count
+                            3000,    //point count
                             30,
-                            4000,    //point count
-                            33,
                             6000,    //point count
-                            37,
-                            15000,    //point count
-                            41,
-                            25000,    //point count
-                            45
+                            33,
+                            12000,    //point count
+                            37
                         ]
                     }
                 });
@@ -1196,7 +1164,7 @@
             function updateAll3D() {
                 updateThreebox();
                 updateElevations('clusters-intersections', 1000);
-                updateElevations('clusters-crashes', 10000);
+                updateElevations('clusters-crashes', 1000);
             }
             function updateThreebox() {
                 //remove the Threebox instantiator layer, if it exists
