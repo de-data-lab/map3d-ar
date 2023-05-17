@@ -375,7 +375,7 @@
                                     onchange="filterOutIntersections.call(this, event);"
                                     checked="checked">Intersections</input>
                             </td>
-                            <td class="colorswatch" style="background-image: linear-gradient(to right, #73cb7d, #007c7d);"></td>
+                            <td class="colorswatch" style="background-image: linear-gradient(to right, #c0efce, #c0efce 20%, #90e3a9 20%, #90e3a9 40%, #61d785 40%, #61d785 60%, #32cb60 60%, #32cb60 80%, #03c03c 80%);"></td>
                         </tr>
                         <tr>
                             <td class="checkboxlabel">
@@ -383,7 +383,7 @@
                                     onchange="filterOutCrashes.call(this, event);"
                                     checked="checked">Crashes</input>
                             </td>
-                            <td class="colorswatch" style="background-image: linear-gradient(to right, 	#ffc2cd,#ff084a);"></td>
+                            <td class="colorswatch" style="background-image: linear-gradient(to right, #ffc2cd, #ffc2cd 20%, #ff93ac 20%, #ff93ac 40%, #ff6289 40%, #ff6289 60%, #fc3468 60%, #fc3468 80%, #ff084a 80%);"></td>
                         </tr>
                     </table>
                 </div>
@@ -943,15 +943,15 @@
                         'circle-color': [
                             'step',
                             ['get', 'point_count'],
-                            '#73cb7d',  //pale green
+                            '#c0efce',  //pale green
                             500,
-                            '#4bb882',  //bright green
+                            '#90e3a9',  //bright green
                             3000,
-                            '#21a585',  //green
+                            '#61d785',  //green
                             6000,
-                            '#009183',  //blue green
+                            '#32cb60',  //blue green
                             12000,
-                            '#007c7d' //turquoise
+                            '#03c03c' //turquoise
                         ],
                         'circle-radius': [
                             'step',
@@ -1199,6 +1199,7 @@
             function updateElevations(layerName, deltaCoefficient) {
                 //Clusters - crashes
                 var clusters = map.queryRenderedFeatures({ layers: [layerName] });
+                console.log(clusters);
                 //
                 //Start the loop to create a clustertower 3D object for each cluster
                 console.log("Starting loop");
