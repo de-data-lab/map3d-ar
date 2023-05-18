@@ -620,8 +620,9 @@
                     visibleLayer('cluster-count-intersections', true);
                     visibleLayer('unclustered-point-intersections', true);
                     //
-                    updateElevations('clusters-crashes', 1000);
-                    updateElevations('clusters-intersections', 1000);
+                    updateThreebox();
+                    updateElevations('clusters-crashes');
+                    updateElevations('clusters-intersections');
                 }
                 else {
                     visibleLayer('crash-features', false);
@@ -667,6 +668,8 @@
                     }
                     console.log(Cluster3DLayerStrings);
                 }
+                updateThreebox();
+                updateElevations('clusters-intersections');
             }
             function filterOutIntersections(e) {
                 console.log(e);
@@ -690,6 +693,8 @@
                     }
                     console.log(Cluster3DLayerStrings);
                 }
+                updateThreebox();
+                updateElevations('clusters-crashes');
             }
 
             
@@ -1163,8 +1168,8 @@
 
             function updateAll3D() {
                 updateThreebox();
-                updateElevations('clusters-intersections', 1000);
-                updateElevations('clusters-crashes', 1000);
+                updateElevations('clusters-intersections');
+                updateElevations('clusters-crashes');
             }
             function updateThreebox() {
                 //remove the Threebox instantiator layer, if it exists
@@ -1196,7 +1201,7 @@
                     }
                 });
             }
-            function updateElevations(layerName, deltaCoefficient) {
+            function updateElevations(layerName) {
                 //Clusters - crashes
                 var clusters = map.queryRenderedFeatures({ layers: [layerName] });
                 console.log(clusters);
@@ -1221,7 +1226,7 @@
                         var delta = [
                             0,
                             0,
-                            l/deltaCoefficient * thiscount
+                            l/1000 * thiscount
                         ]
                         var newCoordinates = origin.map(function(d,i) {
                             return d + delta[i]
