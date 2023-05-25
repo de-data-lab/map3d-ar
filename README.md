@@ -3,6 +3,8 @@ Mapping application in 3D.
 
 ## Live Demo
 View the live demo of [3D map of intersections and crashes](https://de-data-lab.github.io/map3d-ar/build-html/map_traffic.html)
+<br />
+<br />
 
 ## Overview
 This application maps point data as 3D towers with variable height, positioned across the state of Delaware.
@@ -17,6 +19,8 @@ In this map, there are two datasets:
 
 Either, both, or neither of these datasets can be toggled on and off using the tool panel at the right edge of the screen.
 Just click the '>' arrow on the right edge of the screen, and the tool panel will slide out.
+<br />
+<br />
 
 ## Under the Hood
 This project harnesses the power of various libraries, including:
@@ -36,6 +40,8 @@ This project harnesses the power of various libraries, including:
   * Original repository, now read-only [here](https://github.com/peterqliu/threebox)
 
 For information about the licenses of these softwares, see the section below.
+<br />
+<br />
 
 ## Licensing
 
@@ -60,7 +66,7 @@ accordance with the Mapbox TOS. [Updated 2023-01]
 -------------------------------------------------------------------------------
 
 <br />
-<br />
+
 ### Mapbox GL Directions
 ISC License
 Copyright (c) 2015, Mapbox
@@ -80,7 +86,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -------------------------------------------------------------------------------
 
 <br />
-<br />
+
 ### Mapbox Polyline
 BSD 3-Clause License
 Copyright (c), Development Seed  
@@ -112,7 +118,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -------------------------------------------------------------------------------
 
 <br />
-<br />
+
 ### Turf.js
 MIT License
 Copyright (c) 2019 Morgan Herlocker
@@ -137,7 +143,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -------------------------------------------------------------------------------
 
 <br />
-<br />
+
 ### Three.js
 MIT License
 Copyright © 2010-2023 three.js authors
@@ -163,7 +169,7 @@ THE SOFTWARE.
 -------------------------------------------------------------------------------
 
 <br />
-<br />
+
 ### Threebox
 v.2.0.1 - v.2.2.6
 MIT License
@@ -194,7 +200,7 @@ SOFTWARE.
 -------------------------------------------------------------------------------
 
 <br />
-<br />
+
 ### Other Assets
 3D Radar model
 Attribution, no License specified: Model by https://github.com/nasa/ 
