@@ -1,5 +1,7 @@
 # map3d-ar
 Mapping application in 3D.
+<br />
+<br />
 
 ## Live Demo
 View the live demo of [3D map of intersections and crashes](https://de-data-lab.github.io/map3d-ar/build-html/map_traffic.html)
@@ -46,7 +48,8 @@ For information about the licenses of these softwares, see the section below.
 ## Licensing
 
 ### Mapbox GL JS
-Copyright © 2021 - 2023 Mapbox, Inc. All rights reserved.
+Copyright © 2021 - 2023 Mapbox, Inc.  
+All rights reserved.
 
 The software and files in this repository (collectively, "Software") are
 licensed under the Mapbox TOS for use only with the relevant Mapbox product(s)
@@ -68,7 +71,7 @@ accordance with the Mapbox TOS. [Updated 2023-01]
 <br />
 
 ### Mapbox GL Directions
-ISC License
+ISC License  
 Copyright (c) 2015, Mapbox
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -88,7 +91,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 <br />
 
 ### Mapbox Polyline
-BSD 3-Clause License
+BSD 3-Clause License  
 Copyright (c), Development Seed  
 All rights reserved.
 
@@ -120,7 +123,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <br />
 
 ### Turf.js
-MIT License
+MIT License  
 Copyright (c) 2019 Morgan Herlocker
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -145,7 +148,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 <br />
 
 ### Three.js
-MIT License
+MIT License  
 Copyright © 2010-2023 three.js authors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -171,12 +174,12 @@ THE SOFTWARE.
 <br />
 
 ### Threebox
-v.2.0.1 - v.2.2.6
-MIT License
+v.2.0.1 - v.2.2.6  
+MIT License  
 Copyright (c) 2020 Jesus Serrano
 
-v.0.3.0
-MIT License
+v.0.3.0  
+MIT License  
 Copyright (c) 2017 Peter Liu
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -203,5 +206,5 @@ SOFTWARE.
 
 ### Other Assets
 3D Radar model
-Attribution, no License specified: Model by https://github.com/nasa/ 
-  from https://nasa3d.arc.nasa.gov/detail/jpl-vtad-dsn34
+Attribution, no License specified: 
+   Model by https://github.com/nasa/ from https://nasa3d.arc.nasa.gov/detail/jpl-vtad-dsn34  
