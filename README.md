@@ -21,19 +21,19 @@ Just click the '>' arrow on the right edge of the screen, and the tool panel wil
 ## Under the Hood
 This project harnesses the power of various libraries, including:
 * Mapbox GL JS (v2.9.1)
-  *Read the docs [here](https://docs.mapbox.com/mapbox-gl-js/guides/)
+  * Read the docs [here](https://docs.mapbox.com/mapbox-gl-js/guides/)
 * Mapbox GL Directions (v4.1.1)
-  *Source code [here](https://github.com/mapbox/mapbox-gl-directions)
-  *Read the docs [here](https://docs.mapbox.com/help/glossary/directions-api/)
+  * Source code [here](https://github.com/mapbox/mapbox-gl-directions)
+  * Read the docs [here](https://docs.mapbox.com/help/glossary/directions-api/)
 * Mapbox Polyline (v1.1.1)
 * Turf.js
-  *Read the docs [here](https://turfjs.org/docs/)
+  * Read the docs [here](https://turfjs.org/docs/)
 * Three.js (r126)
-  *Official website [here](https://threejs.org/)
-  *Source code [here](https://github.com/mrdoob/three.js/)
+  * Official website [here](https://threejs.org/)
+  * Source code [here](https://github.com/mrdoob/three.js/)
 * Threebox (v2.2.7)
-  *Source code (forked from original repository) [here](https://github.com/jscastro76/threebox)
-  *Original repository, now read-only [here](https://github.com/peterqliu/threebox)
+  * Source code (forked from original repository) [here](https://github.com/jscastro76/threebox)
+  * Original repository, now read-only [here](https://github.com/peterqliu/threebox)
 
 For information about the licenses of these softwares, see the section below.
 
@@ -146,8 +146,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-
-### Mapbox GL Directions
+-------------------------------------------------------------------------------
+  
+### Mapbox GL Directions  
 ISC License
 Copyright (c) 2015, Mapbox
 
@@ -163,7 +164,8 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-
+-------------------------------------------------------------------------------
+  
 ### Mapbox Polyline
 BSD 3-Clause License
 Copyright (c), Development Seed  
@@ -192,7 +194,8 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
+-------------------------------------------------------------------------------
+  
 ### Turf.js
 MIT License
 Copyright (c) 2019 Morgan Herlocker
@@ -214,7 +217,8 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
+-------------------------------------------------------------------------------
+  
 ### Three.js
 MIT License
 Copyright © 2010-2023 three.js authors
@@ -237,7 +241,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-
+-------------------------------------------------------------------------------
+  
 ### Threebox
 v.2.0.1 - v.2.2.6
 MIT License
@@ -265,7 +270,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-
+-------------------------------------------------------------------------------
+  
 ### Other Assets
 3D Radar model
 Attribution, no License specified: Model by https://github.com/nasa/ 
