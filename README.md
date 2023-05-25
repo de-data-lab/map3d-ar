@@ -15,5 +15,22 @@ In this map, there are two datasets:
 Either, both, or neither of these datasets can be toggled on and off using the tool panel at the right edge of the screen.
 Just click the '>' arrow on the right edge of the screen, and the tool panel will slide out.
 
+## Under the Hood
+This project harnesses the power of various libraries, including:
+* Mapbox GL JS (v2.9.1)
+  *Read the docs [here](https://docs.mapbox.com/mapbox-gl-js/guides/)
+* Mapbox Directions API (v4.1.1)
+  *Read the docs [here](https://docs.mapbox.com/help/glossary/directions-api/)
+* Three.js (r126)
+  *Official website [here](https://threejs.org/)
+  *Source code [here](https://github.com/mrdoob/three.js/)
+* Threebox
+  *Source code (forked from original repository) [here](https://github.com/jscastro76/threebox)
+  *Original repository, now read-only [here](https://github.com/peterqliu/threebox)
+
+For information about the licenses of these softwares, see the section below.
+
+## Licensing
+
 ## Live Demo
 View the live demo of [3D map of intersections and crashes](https://de-data-lab.github.io/map3d-ar/build-html/map_traffic.html)
