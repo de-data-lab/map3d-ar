@@ -206,5 +206,5 @@ SOFTWARE.
 
 ### Other Assets
 3D Radar model
-Attribution, no License specified: 
+Attribution, no License specified:  
    Model by https://github.com/nasa/ from https://nasa3d.arc.nasa.gov/detail/jpl-vtad-dsn34  
